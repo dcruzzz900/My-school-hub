@@ -453,7 +453,7 @@ class SchoolApp:
         self.jinja_env.globals.update(url_for=url_for, get_flashed_messages=get_flashed_messages, config=self.config)
         # Flask serves /static/<path>; so do we (works the same under gunicorn, no extra package needed).
         self.add_url_rule("/static/<path:filename>", endpoint="static", view_func=self._send_static)
-        self.wsgi_app = None   # kept only so `app.wsgi_app = ProxyFix(app.wsgi_app, ...)` is a harmless no-op; real request/response plumbing is `school.core.dispatch`, driven by the Django/Werkzeug glue, which already reads X-Forwarded-For/-Proto.
+
         global _app
         _app = self
 
@@ -552,6 +552,38 @@ class SchoolApp:
         raise BuildError(f"Could not build url for endpoint '{endpoint}' with values {sorted(values)}. {last}")
 
     # -- misc ---------------------------------------------------------------------------------------------------
+    def wsgi_app(self, environ, start_response):
+        """Standalone WSGI entry point (Flask-compatible): lets `app` run directly under ANY WSGI server
+        (`gunicorn app:app`, `app:app.wsgi_app`, a plain `wsgiref` server, ...) with no Django involved, using a
+        signed-cookie session (same scheme as school.devserver). `app.wsgi_app = ProxyFix(app.wsgi_app, ...)`
+        in app.py wraps this bound method exactly the way Flask apps do, so X-Forwarded-For/-Proto still work.
+        When running under Django, `school.django_glue.handle()` is used instead and this path is never hit -
+        this exists purely so a misconfigured start command (e.g. one still pointed at `app:app`) fails loudly
+        with a normal HTTP response instead of gunicorn's opaque "Application object must be callable"."""
+        import json as _json
+        from itsdangerous import BadSignature, URLSafeSerializer
+        from werkzeug.wrappers import Request as _WReq
+        req = _WReq(environ)
+        ser = URLSafeSerializer(self.secret_key or "insecure-dev-key-set-SECRET_KEY-env-var", salt="school-session")
+        raw = req.cookies.get("sessionid")
+        try:
+            sess = dict(ser.loads(raw)) if raw else {}
+        except BadSignature:
+            sess = {}
+        before = _json.dumps(sess, sort_keys=True, default=str)
+        resp = dispatch(self, req, sess)
+        headers = list(resp.headers.items())
+        if _json.dumps(sess, sort_keys=True, default=str) != before:
+            if sess:
+                headers.append(("Set-Cookie", f"sessionid={ser.dumps(sess)}; Path=/; HttpOnly; SameSite=Lax"))
+            else:
+                headers.append(("Set-Cookie", "sessionid=; Path=/; Max-Age=0"))
+        start_response(f"{resp.status_code} {_STATUS_NAMES.get(resp.status_code, 'OK')}", headers)
+        return [resp.data]
+
+    def __call__(self, environ, start_response):
+        return self.wsgi_app(environ, start_response)
+
     test_client_class = None
 
     def test_client(self, *args, **kwargs):
