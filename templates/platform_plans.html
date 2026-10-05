@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Subscription Plans{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>Subscription Plans</h1><p class="badge">Configure school plans in Nigerian Naira · payment gateway not connected</p></div></div>
+<div class="card"><p>Changing a plan changes its configuration for future assignments and for schools currently using that plan. Existing legacy schools remain legacy.</p></div>
+{% for p in plans %}
+<div class="card">
+<form method="post" style="display:grid;gap:12px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<input type="hidden" name="code" value="{{ p.code }}">
+<h2>{{ p.name }} <code>{{ p.code }}</code></h2>
+<div class="form-grid">
+<label>Name<input name="name" value="{{ p.name }}" maxlength="80"></label>
+<label>Price (₦)<input type="number" step="0.01" min="0" name="price_ngn" value="{{ p.price_ngn }}"></label>
+<label>Billing days<input type="number" min="1" max="3650" name="billing_days" value="{{ p.billing_days }}"></label>
+<label>Maximum students<input type="number" min="1" name="max_students" value="{{ p.max_students or 0 }}"></label>
+<label>Maximum teachers<input type="number" min="1" name="max_teachers" value="{{ p.max_teachers or 0 }}"></label>
+<label>Storage (MB)<input type="number" min="1" name="max_storage_mb" value="{{ p.max_storage_mb or 0 }}"></label>
+</div>
+<p><strong>Modules</strong></p>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+{% for feature in ['results','attendance','materials','timetable','reports','ai','advanced_reports'] %}<label><input type="checkbox" name="feature" value="{{ feature }}" {% if p.features_json and feature in p.features_json %}checked{% endif %}> {{ feature|replace('_',' ')|title }}</label>{% endfor %}
+</div>
+<button class="btn" type="submit">Save {{ p.name }} Plan</button>
+</form></div>
+{% endfor %}
+<div class="card no-print"><a class="btn btn-small" href="{{ url_for('platform_subscriptions') }}">School Subscriptions</a></div>
+{% endblock %}

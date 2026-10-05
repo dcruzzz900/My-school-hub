@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Parent Messages · {{ school_name }}{% endblock %}{% block content %}
+<div class="page-head"><div><span class="eyebrow">Communication</span><h1>Parent Messages</h1><p>Secure conversations with parents of students you teach.</p></div></div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Parent</th><th>Student</th><th>Class</th><th>Last message</th><th></th></tr></thead><tbody>{% for t in threads %}<tr><td>{{ t.parent_name }}{% if t.unread %}<span class="badge">{{ t.unread }} new</span>{% endif %}</td><td>{{ t.student_name }}</td><td>{{ t.class_name }}</td><td>{{ t.latest_at }}</td><td><a class="btn small" href="{{ url_for('teacher_parent_thread',parent_id=t.parent_id,student_id=t.student_id) }}">Open</a></td></tr>{% else %}<tr><td colspan="5">No parent conversations yet.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

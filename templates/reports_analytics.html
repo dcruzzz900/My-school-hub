@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Reports & Analytics{% endblock %}{% block content %}
+<style>.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.kpi{background:#fff;border-radius:10px;padding:.8rem 1rem;box-shadow:0 1px 4px rgba(0,0,0,.1)}.kpi span{display:block;color:#666;font-size:.8rem;text-transform:uppercase}.kpi strong{font-size:1.7rem}.kpi em{font-style:normal;font-size:.85rem;font-weight:700}.up{color:#1a7f37}.down{color:#b3261e}
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}.chart-card{background:#fff;border-radius:10px;padding:.8rem 1rem;box-shadow:0 1px 4px rgba(0,0,0,.1)}.chart-card h3{margin:.1rem 0 .5rem;font-size:1rem}.chart{width:100%;height:auto;max-height:340px}.chart text{fill:#222;font-family:Arial,sans-serif}.chart-empty{padding:1rem}</style>
+<div class="page-heading"><div><div class="eyebrow">INSIGHTS</div><h1>Reports &amp; Analytics</h1><p>Live statistics for your school only{% if term %} · {{ term.session_name }} — {{ term.name }}{% endif %}.</p></div><button class="btn btn-secondary no-print" onclick="window.print()">Print</button></div>
+<form class="card form-grid no-print" method="GET" style="align-items:end">
+<label>Session / Term<select name="term_id"><option value="">Current term</option>{% for t in terms %}<option value="{{ t.id }}" {{ 'selected' if term and t.id == term.id }}>{{ t.session_name }} — {{ t.name }}</option>{% endfor %}</select></label>
+<label>Class / Arm<select name="class_id"><option value="">All classes</option>{% for c in classes %}<option value="{{ c.id }}" {{ 'selected' if c.id == class_id }}>{{ c.name }}</option>{% endfor %}</select></label>
+<label>Subject<select name="subject_id"><option value="">All subjects</option>{% for s in subjects %}<option value="{{ s.id }}" {{ 'selected' if s.id == subject_id }}>{{ s.name }}</option>{% endfor %}</select></label><button class="btn">Apply</button></form>
+<div class="kpi-grid">{% for label, value, delta in kpis %}<div class="kpi"><span>{{ label }}</span><strong>{{ value }}</strong>{% if delta is not none %}<em class="{{ 'up' if delta >= 0 else 'down' }}"> {{ '▲' if delta >= 0 else '▼' }} {{ delta|abs }} vs last term</em>{% endif %}</div>{% endfor %}</div>
+{% if not has_scores %}<div class="card"><p class="muted">No scores have been entered for this term yet, so the performance charts are empty. Enrollment and attendance charts still show live data.</p></div>{% endif %}
+<div class="chart-grid">
+<div class="chart-card"><h3>Gender distribution</h3>{{ charts.gender }}</div>
+<div class="chart-card"><h3>Class enrollment</h3>{{ charts.enrol }}</div>
+<div class="chart-card"><h3>Subject performance (average)</h3>{{ charts.subject }}</div>
+<div class="chart-card"><h3>Class performance comparison</h3>{{ charts.class }}</div>
+<div class="chart-card"><h3>Grade distribution</h3>{{ charts.grades }}</div>
+<div class="chart-card"><h3>Pass / fail rate</h3>{{ charts.passfail }}</div>
+<div class="chart-card"><h3>Term-to-term performance trend</h3>{{ charts.trend }}</div>
+<div class="chart-card"><h3>Student attendance trend</h3>{{ charts.attendance }}</div>
+<div class="chart-card"><h3>Staff attendance (last 30 days)</h3>{{ charts.staff_att }}</div>
+<div class="chart-card"><h3>Result completion by class</h3>{{ charts.completion }}</div>
+<div class="chart-card"><h3>Published vs unpublished terms</h3>{{ charts.published }}</div></div>
+{% if class_perf %}<div class="card" style="margin-top:12px;overflow:auto"><h3>Class performance table</h3><table><thead><tr><th>Class</th><th>Average score</th></tr></thead><tbody>{% for r in class_perf %}<tr><td>{{ r.name }}</td><td>{{ '%.1f'|format(r.a) if r.a is not none else '—' }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% endblock %}

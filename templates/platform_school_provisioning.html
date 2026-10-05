@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}School Provisioning{% endblock %}
+{% block content %}
+<h1>School Provisioning</h1>
+<p style="color:#666">Review onboarding status without exposing passwords, secrets or student records.</p>
+<div class="card">
+  <h2>{{ school.name }}</h2>
+  <p><strong>School ID:</strong> {{ school.school_code }}</p>
+  <p><strong>Tenant ID:</strong> {{ school.tenant_id }}</p>
+  <p><strong>Registered email:</strong> {{ school.registered_email or '-' }}</p>
+  <p><strong>Activation:</strong> {{ school.activation_status }}</p>
+  <p><strong>Account status:</strong> {% if school.is_archived %}Archived{% elif school.is_suspended %}Suspended{% else %}Active{% endif %}</p>
+</div>
+<div class="card">
+  <h2>Provisioning checklist</h2>
+  <ul>
+    <li>{{ '✓' if checks.school_id else '✗' }} Permanent School ID generated</li>
+    <li>{{ '✓' if checks.tenant_id else '✗' }} Permanent Tenant ID generated</li>
+    <li>{{ '✓' if checks.admin else '✗' }} School Admin account created</li>
+    <li>{{ '✓' if checks.activated else '✗' }} School Admin activation completed</li>
+    <li>{{ '✓' if checks.not_suspended else '✗' }} School is not suspended</li>
+    <li>{{ '✓' if checks.not_archived else '✗' }} School is not archived</li>
+    <li>{{ '✓' if checks.role_assignment else '✗' }} Active role assignment exists</li>
+  </ul>
+</div>
+<div class="card">
+  <h2>Current setup counts</h2>
+  <p>Active role assignments: <strong>{{ role_count }}</strong></p>
+  <p>Classes: <strong>{{ class_count }}</strong></p>
+  <p>Students: <strong>{{ student_count }}</strong></p>
+</div>
+<div class="card">
+  <h2>School Admin</h2>
+  {% if admin %}
+    <p><strong>Name:</strong> {{ admin.name }}</p>
+    <p><strong>Username:</strong> {{ admin.username }}</p>
+  {% else %}<p>No School Admin account found.</p>{% endif %}
+</div>
+<div class="card">
+  <h2>Activation code</h2>
+  {% if code_status and code_status.code %}
+    <p>Status: <strong>{{ code_status.status }}</strong></p>
+    <p>Expires: {{ code_status.expires_at }}</p>
+    <p style="color:#666">For security, this page does not display the activation code.</p>
+  {% else %}
+    <p>No active activation code.</p>
+  {% endif %}
+</div>
+<a class="btn btn-small" href="{{ url_for('platform_schools') }}">← Back to Schools</a>
+{% endblock %}

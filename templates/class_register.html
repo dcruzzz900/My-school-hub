@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Class Register{% endblock %}{% block content %}
+<h1>Class Register — {{ class_row.name }}</h1>
+<p class="muted">Register numbers are unique across the school. Only active students can be numbered.</p>
+<div class="card"><form method="POST" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="auto"><button class="btn btn-small">Auto-number students without a register number</button></form>
+<a class="btn btn-small" href="{{ url_for('roll_call', class_id=class_row.id) }}">Take attendance</a> <a class="btn btn-small" href="{{ url_for('roll_call_history', class_id=class_row.id) }}">Attendance history</a></div>
+<form method="POST" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="save"><div class="table-wrap"><table><tr><th>#</th><th>Admission No.</th><th>Student</th><th>Register No.</th><th>Status</th></tr>
+{% for s in students %}<tr><td>{{ loop.index }}</td><td>{{ s.admission_no }}</td><td>{{ student_full_name(s) }}</td><td>{% if (s.status or 'Active') == 'Active' %}<input name="register_no_{{ s.id }}" maxlength="40" value="{{ s.register_no or '' }}" style="max-width:150px">{% else %}{{ s.register_no or '—' }}{% endif %}</td><td>{{ s.status or 'Active' }}</td></tr>{% endfor %}</table></div>
+<button class="btn" style="margin-top:.8rem">Save register</button></form>{% endblock %}

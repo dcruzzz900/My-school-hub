@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Attendance · {{ child.first_name }}{% endblock %}{% block content %}
+<div class="page-head"><div><span class="eyebrow">Parent Portal</span><h1>Staff Attendance</h1><p>{{ child.first_name }} {{ child.last_name }} · {{ child.class_name }}</p></div></div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Term</th><th>Days Recorded</th><th>Present</th><th>Absent</th><th>Staff Attendance</th></tr></thead><tbody>{% for r in rows %}<tr><td>{{ r.name }}</td><td>{{ r.days_opened or 0 }}</td><td>{{ r.present or 0 }}</td><td>{{ r.absent or 0 }}</td><td>{% if (r.present or 0)+(r.absent or 0) %}{{ ((r.present or 0)*100/((r.present or 0)+(r.absent or 0)))|round(1) }}%{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

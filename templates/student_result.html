@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}My Result{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result-sheet.css') }}">
+<style>@media print{.no-print,.app-sidebar,.topbar,header,nav{display:none!important}}</style>
+<div class="no-print" style="margin-bottom:1rem;">
+    <a class="btn" href="{{ url_for('student_result_pdf', term_id=term.id) }}">Download PDF</a>
+    <a class="btn btn-gold" href="{{ url_for('student_result_print', term_id=term.id, auto=1) }}" target="_blank" rel="noopener">Print</a>
+    <a class="btn btn-secondary" href="{{ url_for('student_dashboard') }}">Back to My Results</a>
+</div>
+<div class="rs-screen-wrap">{% include "_result_sheet.html" %}</div>
+{% endblock %}

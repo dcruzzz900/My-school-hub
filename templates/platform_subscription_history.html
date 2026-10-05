@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Subscription history{% endblock %}{% block content %}
+<h1>{{ school.name }} — Subscription history</h1><p>Current status: <b>{{ status }}</b> · <a href="{{ url_for('platform_subscription_manager') }}">← Back</a></p>
+<div class="card" style="overflow:auto">{% if rows %}<table><thead><tr><th>When</th><th>Action</th><th>Status</th><th>Plan</th><th>Expiry</th><th>By</th><th>Note</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.created_at }}</td><td>{{ r.action|title }}</td><td>{{ r.previous_status or '—' }} → {{ r.new_status }}</td><td>{{ r.previous_plan or '—' }} → {{ r.new_plan or '—' }}</td><td>{{ (r.previous_ends_at or '—')[:10] }} → {{ (r.new_ends_at or '—')[:10] }}</td><td>{{ r.actor_name }}</td><td>{{ r.note or '' }}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">No subscription changes recorded yet.</p>{% endif %}</div>{% endblock %}

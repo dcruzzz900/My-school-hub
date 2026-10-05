@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Roles & Permissions{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>Roles & Permissions</h1><p class="badge">Platform-wide role assignment with school and level scope</p></div></div>
+<div class="card">
+  <div class="dashboard-actions">
+    <a class="btn btn-gold" href="{{ url_for('platform_role_new') }}">+ Assign Role</a>
+    <a class="btn" href="{{ url_for('platform_users') }}">Users</a>
+  </div>
+</div>
+<div class="card" style="overflow-x:auto">
+<table>
+<tr><th>User</th><th>School</th><th>Tenant</th><th>Role</th><th>Level</th><th>Status</th><th>Actions</th></tr>
+{% for a in assignments %}
+<tr>
+<td><strong>{{ a.user_name }}</strong><br><small>{{ a.username }}</small></td>
+<td>{{ a.school_name }}<br><small>{{ a.school_code }}</small></td>
+<td><code>{{ a.tenant_id }}</code></td>
+<td>{{ a.role }}</td><td>{{ a.school_level }}</td><td>{{ a.status }}</td>
+<td>{% if a.status == 'active' %}<form method="POST" action="{{ url_for('platform_role_revoke', assignment_id=a.id) }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small" type="submit" onclick="return confirm('Revoke this role?')">Revoke</button></form>{% endif %}</td>
+</tr>
+{% else %}<tr><td colspan="7">No role assignments yet.</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% block title %}{{ 'Add' if mode=='new' else 'Edit' }} Custom Field{% endblock %}{% block content %}
+<style>.cf-row{margin-bottom:12px}.cf-row label{display:block;font-weight:600;margin-bottom:3px}.cf-err{color:#b3261e;font-weight:600;font-size:.88rem}.cf-row input[type=text],.cf-row input[type=number],.cf-row textarea,.cf-row select{width:100%;max-width:520px;box-sizing:border-box}.opt-row{display:flex;gap:6px;margin-bottom:5px;max-width:520px}.opt-row input[type=text]{flex:1}</style>
+<h1>{{ 'Add' if mode=='new' else 'Edit' }} {{ applies_to|title }} Field</h1>
+{% if errors %}<div class="card" style="border:1px solid #b3261e"><b>Nothing was saved.</b> Please fix the highlighted fields.</div>{% endif %}
+<form method="POST" class="card" id="cfForm" novalidate style="max-width:680px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="applies_to" value="{{ applies_to }}">
+<div class="cf-row"><label>Field Name / Label *</label><input type="text" name="label" maxlength="60" value="{{ data.label or '' }}">{% if errors.label %}<div class="cf-err">{{ errors.label }}</div>{% endif %}</div>
+<div class="cf-row"><label>Internal Field Key</label><input type="text" value="{{ field.field_key if field else 'Generated automatically when the field is saved' }}" disabled><small class="muted">Unique, generated automatically and never changed afterwards.</small></div>
+<div class="cf-row"><label>Description / Help Text</label><textarea name="description" rows="2" maxlength="300">{{ data.description or '' }}</textarea></div>
+<div class="cf-row"><label>Applies To</label><input type="text" value="{{ applies_to|title }}" disabled></div>
+<div class="cf-row"><label>Field Type *</label>
+{% if mode=='edit' %}<input type="text" value="{% for k,l in field_types if k==field.field_type %}{{ l }}{% endfor %}" disabled><small class="muted">The type cannot change after creation because it would invalidate saved data.</small><input type="hidden" id="ftype" value="{{ field.field_type }}">
+{% else %}<select name="field_type" id="ftype">{% for k,l in field_types %}<option value="{{ k }}" {{ 'selected' if data.field_type==k }}>{{ l }}</option>{% endfor %}</select>{% if errors.field_type %}<div class="cf-err">{{ errors.field_type }}</div>{% endif %}{% endif %}</div>
+<div class="cf-row" id="optBox" style="display:none"><label>Options</label><div id="optList">
+{% for o in options %}<div class="opt-row"><input type="hidden" name="opt_id" value="{{ o.id or '' }}"><input type="text" name="opt_text" value="{{ o.text }}" maxlength="100" placeholder="Option"><button type="button" class="btn btn-small" onclick="mv(this,-1)">▲</button><button type="button" class="btn btn-small" onclick="mv(this,1)">▼</button><label style="font-weight:400"><input type="checkbox" class="rm"> remove</label></div>{% endfor %}</div>
+<button type="button" class="btn btn-small btn-secondary" onclick="addOpt()">+ Add option</button>{% if errors.options %}<div class="cf-err">{{ errors.options }}</div>{% endif %}
+<small class="muted" style="display:block">Renaming an option updates existing saved values. An option already in use is deactivated instead of deleted.</small></div>
+<div class="cf-row"><label><input type="checkbox" name="is_required" value="1" {{ 'checked' if data.is_required in (1,'1') }}> Required</label><small class="muted">Existing profiles stay valid; the value is asked for the next time the profile is saved.</small></div>
+<div class="cf-row" id="uniqBox"><label><input type="checkbox" name="is_unique" value="1" {{ 'checked' if data.is_unique in (1,'1') }}> Unique within this school</label>{% if errors.is_unique %}<div class="cf-err">{{ errors.is_unique }}</div>{% endif %}</div>
+<div class="cf-row"><label><input type="checkbox" name="is_editable" value="1" {{ 'checked' if data.is_editable in (1,'1') }}> Editable by the user (student / staff member)</label></div>
+<div class="cf-row"><label><input type="checkbox" name="is_active" value="1" {{ 'checked' if data.is_active in (1,'1') }}> Active</label></div>
+<div class="cf-row" id="defBox"><label>Default Value</label><input type="text" name="default_value" value="{{ data.default_value or '' }}"><small class="muted" id="defHelp">Optional. For Multiple Select separate values with |</small>{% if errors.default_value %}<div class="cf-err">{{ errors.default_value }}</div>{% endif %}</div>
+<div class="cf-row"><label>Display Order</label><input type="number" name="display_order" min="1" max="9999" value="{{ data.display_order or '' }}" style="max-width:120px"></div>
+<button class="btn" id="cfSave" type="submit">Save Field</button> <a class="btn btn-secondary" href="{{ url_for('admin_custom_fields', tab=applies_to) }}">Cancel</a></form>
+<script>
+var OPT={{ option_types|tojson }},UNI={{ unique_capable|tojson }},sel=document.getElementById('ftype');
+function sync(){var t=sel.value;document.getElementById('optBox').style.display=OPT.indexOf(t)>=0?'block':'none';document.getElementById('uniqBox').style.display=UNI.indexOf(t)>=0?'block':'none';document.getElementById('defBox').style.display=t==='file'?'none':'block';}
+function addOpt(){var d=document.createElement('div');d.className='opt-row';d.innerHTML='<input type="hidden" name="opt_id" value=""><input type="text" name="opt_text" maxlength="100" placeholder="Option"><button type="button" class="btn btn-small" onclick="mv(this,-1)">▲</button><button type="button" class="btn btn-small" onclick="mv(this,1)">▼</button><label style="font-weight:400"><input type="checkbox" class="rm"> remove</label>';document.getElementById('optList').appendChild(d);}
+function mv(b,dir){var r=b.parentNode,p=r.parentNode;if(dir<0&&r.previousElementSibling)p.insertBefore(r,r.previousElementSibling);else if(dir>0&&r.nextElementSibling)p.insertBefore(r.nextElementSibling,r);}
+document.getElementById('cfForm').addEventListener('submit',function(e){var b=document.getElementById('cfSave');if(b.disabled){e.preventDefault();return;}
+ document.querySelectorAll('#optList .opt-row').forEach(function(r,i){var c=r.querySelector('.rm');c.name='opt_remove';c.value=String(i);if(!c.checked){c.disabled=true;}});
+ b.disabled=true;b.textContent='Saving…';});
+sel.addEventListener&&sel.addEventListener('change',sync);sync();
+</script>{% endblock %}

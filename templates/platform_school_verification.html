@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}School Verification{% endblock %}
+{% block content %}
+<h1>School / Tenant Verification</h1>
+<p style="color:#666">Platform-only verification. This page shows identity, readiness and aggregate counts; it does not expose passwords or student records.</p>
+<div class="card">
+  <h2>{{ school.name }}</h2>
+  <div class="grid-2">
+    <div><strong>School ID</strong><br><code>{{ school.school_code or '—' }}</code></div>
+    <div><strong>Tenant ID</strong><br><code>{{ school.tenant_id or '—' }}</code></div>
+    <div><strong>Activation</strong><br>{{ school.activation_status or '—' }}</div>
+    <div><strong>Account</strong><br>{% if school.is_archived %}Archived{% elif school.is_suspended %}Suspended{% else %}Active{% endif %}</div>
+    <div><strong>Readiness</strong><br>{% if readiness_ready %}<span class="badge" style="background:#1d7a4c;">READY</span>{% else %}<span class="badge" style="background:#c99a2e;">PENDING</span>{% endif %}</div>
+    <div><strong>Registered Email</strong><br>{{ school.registered_email or '—' }}</div>
+  </div>
+</div>
+<div class="card">
+  <h2>Tenant identity checks</h2>
+  <ul>{% for label, ok in identity_checks %}<li>{{ '✓' if ok else '✗' }} {{ label }}</li>{% endfor %}</ul>
+</div>
+<div class="card">
+  <h2>Live-data readiness checks</h2>
+  <ul>{% for key, ok in readiness_checks %}<li>{{ '✓' if ok else '✗' }} {{ key|replace('_',' ')|title }}</li>{% endfor %}</ul>
+</div>
+<div class="card">
+  <h2>Aggregate data counts</h2>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="num">{{ data_counts.students }}</div><div class="label">Students</div></div>
+    <div class="stat-box"><div class="num">{{ data_counts.teachers }}</div><div class="label">Teachers</div></div>
+    <div class="stat-box"><div class="num">{{ data_counts.classes }}</div><div class="label">Classes</div></div>
+    <div class="stat-box"><div class="num">{{ data_counts.subjects }}</div><div class="label">Subjects</div></div>
+    <div class="stat-box"><div class="num">{{ data_counts.sessions }}</div><div class="label">Sessions</div></div>
+  </div>
+</div>
+<div class="no-print"><a class="btn btn-small" href="{{ url_for('platform_schools') }}">← Back to Schools</a></div>
+{% endblock %}

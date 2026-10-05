@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Manage Subscription{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>{{ school.name }}</h1><p><code>{{ school.school_code }}</code> · <code>{{ school.tenant_id }}</code></p></div></div>
+<div class="card"><h2>Current subscription</h2><p><strong>Status:</strong> {{ state.label }}</p><p><strong>Plan:</strong> {{ school.subscription_plan or 'legacy' }}</p><p><strong>Trial ends:</strong> {{ school.trial_ends_at or '—' }}</p><p><strong>Subscription ends:</strong> {{ school.subscription_ends_at or '—' }}</p><p><strong>Grace ends:</strong> {{ school.grace_ends_at or '—' }}</p><p><strong>Days remaining:</strong> {{ state.days_left if state.days_left is not none else '—' }}</p></div>
+<div class="card"><h2>Plan usage</h2><p>Current usage is shown for planning. The current plan does not automatically block existing data entry when a limit is reached.</p>
+<table><tr><th>Resource</th><th>Used</th><th>Limit</th><th>Usage</th></tr>
+<tr><td>Students</td><td>{{ limits.students.used }}</td><td>{{ limits.students.limit or '—' }}</td><td>{{ limits.students.percent }}%</td></tr>
+<tr><td>Teachers</td><td>{{ limits.teachers.used }}</td><td>{{ limits.teachers.limit or '—' }}</td><td>{{ limits.teachers.percent }}%</td></tr></table></div>
+<div class="card"><h2>Manage access period</h2>
+<form method="post" style="display:grid;gap:12px;max-width:500px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Trial days <input type="number" name="days" value="30" min="1" max="365"></label><button class="btn" name="action" value="start_trial">Start / Reset Trial</button></form>
+<hr><form method="post" style="display:grid;gap:12px;max-width:500px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Plan <select name="plan">{% for p in plans %}<option value="{{ p.code }}" {% if school.subscription_plan == p.code %}selected{% endif %}>{{ p.name }} — ₦{{ "{:,.0f}".format(p.price_ngn) }}</option>{% endfor %}</select></label><label>Subscription days <input type="number" name="days" value="365" min="1" max="3650"></label><button class="btn" name="action" value="activate">Activate Subscription</button></form>
+<hr><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="days" value="30"><button class="btn" name="action" value="extend">Extend by 30 days</button></form>
+<hr><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="days" value="7"><button class="btn" name="action" value="grace">Grant 7-day Grace Period</button></form>
+<hr><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" name="action" value="suspend">Suspend Subscription</button> <button class="btn" name="action" value="cancel">Cancel Subscription</button> <button class="btn" name="action" value="legacy">Restore Legacy Access</button></form>
+</div>
+<div class="card no-print"><a class="btn btn-small" href="{{ url_for('platform_subscriptions') }}">← Back to subscriptions</a></div>
+{% endblock %}

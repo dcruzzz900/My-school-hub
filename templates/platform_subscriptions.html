@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}School Subscriptions{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>School Subscription & Trial Management</h1><p class="badge">Platform billing lifecycle · no payment processing</p></div></div>
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">{{ counts.trial }}</div><div class="label">Trials</div></div>
+  <div class="stat-box"><div class="num">{{ counts.active }}</div><div class="label">Active</div></div>
+  <div class="stat-box"><div class="num">{{ counts.grace }}</div><div class="label">Grace</div></div>
+  <div class="stat-box"><div class="num">{{ counts.expired }}</div><div class="label">Expired</div></div>
+  <div class="stat-box"><div class="num">{{ counts.suspended }}</div><div class="label">Suspended</div></div>
+</div>
+<div class="card"><p>Existing schools marked <strong>Legacy / Existing</strong> keep their current access. Subscription status does not delete school data.</p>
+<div style="overflow-x:auto"><table><tr><th>School</th><th>School ID</th><th>Plan</th><th>Status</th><th>End date</th><th>Days left</th><th>Action</th></tr>
+{% for r in rows %}<tr><td><strong>{{ r.school.name }}</strong></td><td><code>{{ r.school.school_code }}</code></td><td>{{ r.school.subscription_plan or 'legacy' }}</td><td>{{ r.state.label }}</td><td>{% if r.state.status == 'trial' %}{{ r.school.trial_ends_at or '—' }}{% else %}{{ r.school.subscription_ends_at or '—' }}{% endif %}</td><td>{{ r.state.days_left if r.state.days_left is not none else '—' }}</td><td><a class="btn btn-small" href="{{ url_for('platform_school_subscription', school_id=r.school.id) }}">Manage</a></td></tr>
+{% else %}<tr><td colspan="7">No schools.</td></tr>{% endfor %}</table></div></div>
+{% endblock %}

@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Parent Conversation · {{ child.first_name }}{% endblock %}{% block content %}
+<div class="page-head"><div><span class="eyebrow">Parent Messages</span><h1>{{ parent.name }}</h1><p>{{ child.first_name }} {{ child.last_name }} · {{ child.class_name }}</p></div><a class="btn secondary" href="{{ url_for('teacher_parent_messages') }}">← Inbox</a></div>
+<div class="chat-panel"><div class="chat-messages">{% for m in messages %}<div class="chat-bubble {{ 'mine' if m.sender_type=='teacher' else 'theirs' }}"><p>{{ m.body }}</p><small>{{ m.created_at }}</small></div>{% endfor %}</div><form method="POST" class="chat-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><textarea name="body" maxlength="4000" required placeholder="Reply to {{ parent.name }}..."></textarea><button class="btn" type="submit">Send reply</button></form></div>
+{% endblock %}

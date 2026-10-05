@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-3">
+  <h2>Security &amp; Tenant Isolation Audit</h2>
+  <p class="text-muted">Read-only platform integrity check. School content is not displayed.</p>
+  <div class="alert {% if report.status == 'PASS' %}alert-success{% else %}alert-warning{% endif %}">
+    <strong>{{ report.status }}</strong> — Critical: {{ report.critical_count }} · High: {{ report.high_count }}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr><th>Severity</th><th>Check</th><th>Finding</th><th>Count</th></tr></thead>
+      <tbody>
+      {% for f in report.findings %}
+        <tr>
+          <td>{{ f.severity }}</td><td>{{ f.code }}</td><td>{{ f.message }}</td><td>{{ f.count }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p><a href="{{ url_for('platform_dashboard') }}">Back to Platform Dashboard</a></p>
+</div>
+{% endblock %}

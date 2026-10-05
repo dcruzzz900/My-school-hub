@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}AI Consent{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">AI PRIVACY</div><h1>AI Consent for {{ child.first_name }} {{ child.last_name }}</h1><p>Review how identifiable student information may be used by AI-assisted school features.</p></div></div>
+<div class="card"><h3>Privacy notice {{ policy_version }}</h3><p>AI may use the minimum information needed for enabled school features such as result analysis and comments. Ordinary results, attendance and other school services continue to work if consent is unavailable or withdrawn.</p><p class="muted">Consent does not permit AI to change marks, grades, attendance or finalized results.</p></div>
+<div class="card"><h3>Current status</h3><p><strong>{{ consent.status|title if consent else 'Pending' }}</strong></p>{% if consent and consent.granted_at %}<p class="muted">Granted: {{ consent.granted_at }}</p>{% endif %}{% if consent and consent.withdrawn_at %}<p class="muted">Withdrawn: {{ consent.withdrawn_at }}</p>{% endif %}
+<form method="POST" class="inline-actions"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" name="action" value="granted">Grant consent</button><button class="btn secondary" name="action" value="withdrawn">Withdraw consent</button></form></div>
+{% endblock %}

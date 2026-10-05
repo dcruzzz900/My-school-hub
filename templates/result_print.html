@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ student_full_name(student) }} — {{ term.name }} Result</title><meta name="robots" content="noindex">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result-sheet.css') }}">
+<style>body{margin:0;background:#e9ecef}.rs-toolbar{position:sticky;top:0;display:flex;gap:8px;justify-content:center;padding:8px;background:#222}.rs-toolbar button,.rs-toolbar a{padding:8px 16px;border-radius:6px;border:0;background:#fff;color:#111;font:600 14px Arial;text-decoration:none;cursor:pointer}.rs-wrap{padding:12px 0}body.rs-measuring .rs-sheet{width:210mm!important;max-width:none!important}.rs-wrap .rs-sheet{box-shadow:0 2px 10px rgba(0,0,0,.25)}@media print{body{background:#fff}.rs-toolbar{display:none}.rs-wrap{padding:0}}</style></head>
+<body class="rs-print-page">
+<div class="rs-toolbar no-print"><button type="button" onclick="window.print()">Print</button><a href="{{ pdf_url }}">Download PDF</a><a href="{{ back_url }}">Close</a></div>
+<div class="rs-wrap">{% include "_result_sheet.html" %}</div>
+<script>
+/* Fit every sheet onto exactly one A4 page: measure at true A4 width, then scale the content down (transform, which prints
+   reliably) until it fits inside the sheet's padding box. Small safety margin so nothing is ever clipped. */
+(function(){
+  function fit(){
+    document.body.classList.add('rs-measuring');
+    document.querySelectorAll('.rs-sheet').forEach(function(sh){
+      var inner=sh.querySelector(':scope > .rs-fit');
+      if(!inner){inner=document.createElement('div');inner.className='rs-fit';while(sh.firstChild){inner.appendChild(sh.firstChild);}sh.appendChild(inner);}
+      inner.style.transform='none';inner.style.width='100%';inner.style.height='auto';
+      var mm=96/25.4, avail=(296-20)*mm-4, h=inner.getBoundingClientRect().height;
+      if(h>avail){
+        var s=Math.max(0.45,Math.floor((avail/h)*100)/100);
+        for(var i=0;i<6;i++){
+          inner.style.transformOrigin='top left';inner.style.width=(100/s)+'%';inner.style.transform='scale('+s+')';
+          var hh=inner.scrollHeight*s;
+          if(hh<=avail||s<=0.45)break;
+          s=Math.max(0.45,Math.floor(s*(avail/hh)*100)/100-0.01);
+        }
+        inner.style.height=(avail/s)+'px';
+      }
+    });
+    document.body.classList.remove('rs-measuring');
+  }
+  if(document.readyState==='complete'){fit();}else{window.onload=fit;}
+  window.addEventListener('beforeprint',fit);
+})();
+</script>
+{% if autoprint %}<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},350);});</script>{% endif %}
+</body></html>

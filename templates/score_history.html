@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Score History{% endblock %}
+{% block content %}
+<h1>Score Change History</h1>
+<p class="badge">{{ class_row.name }} · {{ subject_row.name }}{% if term %} · {{ term.name }}{% endif %}</p>
+<form method="GET" class="card no-print"><label>Term<select name="term_id" onchange="this.form.submit()">{% for t in all_terms %}<option value="{{ t.id }}" {{ 'selected' if term and t.id == term.id }}>{{ t.session_name }} — {{ t.name }}</option>{% endfor %}</select></label></form>
+<div class="card">{% if history %}{% include "_score_audit_table.html" %}{% else %}<p class="muted">No score changes recorded yet for this class/subject in this term.</p>{% endif %}</div>
+{% endblock %}

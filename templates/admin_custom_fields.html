@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Custom Fields{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">ADMINISTRATION</div><h1>Custom Profile Fields</h1>
+<p>Add school-specific fields to Student and Staff profiles. Protected system fields cannot be replaced.</p></div>
+<a class="btn" href="{{ url_for('admin_custom_field_new', applies_to=tab) }}">+ Add New Field</a></div>
+<div style="margin:10px 0"><a class="btn {{ '' if tab=='student' else 'btn-secondary' }}" href="{{ url_for('admin_custom_fields', tab='student') }}">Student Fields</a>
+<a class="btn {{ '' if tab=='staff' else 'btn-secondary' }}" href="{{ url_for('admin_custom_fields', tab='staff') }}">Staff/Teacher Fields</a>
+<a class="btn btn-small btn-secondary" href="{{ url_for('admin_custom_fields', tab=tab, archived=(0 if show_archived else 1)) }}">{{ 'Hide' if show_archived else 'Show' }} archived</a>
+<a class="btn btn-small btn-secondary" href="{{ url_for('admin_audit_history') }}">Audit history</a></div>
+<div class="card" style="overflow:auto">
+{% if fields %}<table><thead><tr><th>Order</th><th>Field Name</th><th>Applies To</th><th>Type</th><th>Required</th><th>Editable</th><th>Unique</th><th>Status</th><th>In use</th><th>Created By</th><th>Date Created</th><th>Actions</th></tr></thead><tbody>
+{% for f in fields %}<tr>
+<td>{{ f.display_order }}{% if not f.is_archived %}<form method="POST" action="{{ url_for('admin_custom_field_move', fid=f.id) }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small" name="direction" value="up" title="Move up" {{ 'disabled' if loop.first }}>▲</button><button class="btn btn-small" name="direction" value="down" title="Move down" {{ 'disabled' if loop.last }}>▼</button></form>{% endif %}</td>
+<td><a href="{{ url_for('admin_custom_field_detail', fid=f.id) }}">{{ f.label }}</a></td><td>{{ f.applies_to|title }}</td><td>{{ type_labels.get(f.field_type) }}</td>
+<td>{{ 'Yes' if f.is_required else 'No' }}</td><td>{{ 'Yes' if f.is_editable else 'No' }}</td><td>{{ 'Yes' if f.is_unique else 'No' }}</td>
+<td>{% if f.is_archived %}Archived{% elif f.is_active %}Active{% else %}Inactive{% endif %}</td><td>{{ f.usage }}</td>
+<td>{{ f.created_by_name or '—' }}</td><td>{{ f.created_at[:10] if f.created_at else '' }}</td>
+<td style="white-space:nowrap"><a class="btn btn-small" href="{{ url_for('admin_custom_field_detail', fid=f.id) }}">View</a>
+{% if not f.is_archived %}<a class="btn btn-small" href="{{ url_for('admin_custom_field_edit', fid=f.id) }}">Edit</a>
+<form method="POST" action="{{ url_for('admin_custom_field_toggle', fid=f.id) }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small">{{ 'Deactivate' if f.is_active else 'Activate' }}</button></form>{% endif %}
+<form method="POST" action="{{ url_for('admin_custom_field_archive', fid=f.id) }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small">{{ 'Restore' if f.is_archived else 'Archive' }}</button></form>
+{% if f.usage == 0 %}<form method="POST" action="{{ url_for('admin_custom_field_delete', fid=f.id) }}" style="display:inline" onsubmit="return confirm('Delete this unused field permanently?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small" style="background:#b3261e">Delete</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% else %}<p class="muted">No {{ tab }} custom fields yet. Use “Add New Field” to create one.</p>{% endif %}</div>{% endblock %}

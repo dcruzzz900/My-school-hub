@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Multi-School Control Center{% endblock %}
+{% block content %}
+<div class="dashboard-header">
+  <div>
+    <h1>Multi-School Control Center</h1>
+    <p class="badge">Platform health · tenant isolation · school readiness</p>
+  </div>
+</div>
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">{{ sub_totals.total }}</div><div class="label">Total Schools</div></div>
+  <div class="stat-box"><div class="num">{{ sub_totals.active_schools }}</div><div class="label">Active Schools</div></div>
+  <div class="stat-box"><div class="num">{{ sub_totals.Suspended }}</div><div class="label">Suspended (subscription)</div></div>
+  <div class="stat-box"><div class="num">{{ sub_totals.Trial }}</div><div class="label">Trial Schools</div></div>
+  <div class="stat-box"><div class="num">{{ sub_totals.Expired }}</div><div class="label">Expired Schools</div></div>
+</div>
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">{{ totals.ready }}</div><div class="label">Ready Schools</div></div>
+  <div class="stat-box"><div class="num">{{ totals.pending }}</div><div class="label">Setup Pending</div></div>
+  <div class="stat-box"><div class="num">{{ totals.attention }}</div><div class="label">Needs Attention</div></div>
+  <div class="stat-box"><div class="num">{{ totals.suspended }}</div><div class="label">Suspended</div></div>
+  <div class="stat-box"><div class="num">{{ totals.archived }}</div><div class="label">Archived</div></div>
+</div>
+<div class="card">
+  <h2>School health overview</h2>
+  <p style="color:#666">Only platform-level status and aggregate setup information is shown here. Student records, passwords and private result data are not displayed.</p>
+  <div style="overflow-x:auto">
+    <table>
+      <tr><th>School</th><th>School ID</th><th>Tenant ID</th><th>Registered</th><th>Subscription</th><th>Activation</th><th>Readiness</th><th>Tenant Integrity</th><th>Setup</th><th>Attention</th><th>Action</th></tr>
+      {% for r in rows %}
+      <tr>
+        <td><strong>{{ r.school.name }}</strong></td>
+        <td><code>{{ r.school.school_code or '—' }}</code></td>
+        <td><code>{{ r.school.tenant_id or '—' }}</code></td>
+        <td>{{ (r.school.created_at or '—')[:10] }}</td><td>{{ r.sub_status }}</td><td>{% if r.school.is_archived %}Archived{% elif r.school.is_suspended %}Suspended{% elif r.school.activation_status == 'active' %}Active{% else %}Pending activation{% endif %}</td>
+        <td>{% if r.status == 'ready' %}<span class="badge" style="background:#1d7a4c">READY</span>{% else %}<span class="badge" style="background:#c99a2e">PENDING</span>{% endif %}</td>
+        <td>{% if r.identity_ok %}<span style="color:#1d7a4c;font-weight:600">✓ Verified</span>{% else %}<span style="color:#b3261e;font-weight:600">✗ Issue</span>{% endif %}</td>
+        <td>{{ r.readiness_percent }}%</td>
+        <td>{% if r.attention %}<span style="color:#b3261e;font-weight:600">{{ r.failed_readiness + (0 if r.identity_ok else 1) }} issue(s)</span>{% else %}<span style="color:#1d7a4c">None</span>{% endif %}</td>
+        <td style="white-space:nowrap"><a class="btn btn-small" href="{{ url_for('platform_school_verification', school_id=r.school.id) }}">Inspect</a></td>
+      </tr>
+      {% else %}<tr><td colspan="9" style="color:#999">No schools have been onboarded yet.</td></tr>{% endfor %}
+    </table>
+  </div>
+</div>
+<div class="card no-print">
+  <h3>What requires attention?</h3>
+  <ul>
+    <li>Tenant identity problems: missing/duplicate School ID or Tenant ID, or mismatched assigned tenants.</li>
+    <li>Readiness problems: required school setup components are still incomplete.</li>
+    <li>Account status problems: pending activation, suspension or archive status.</li>
+  </ul>
+  <a class="btn btn-small" href="{{ url_for('platform_schools') }}">← Manage Schools</a>
+</div>
+{% endblock %}

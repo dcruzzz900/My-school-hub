@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}{{ f.label }}{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">CUSTOM FIELD</div><h1>{{ f.label }}</h1></div>
+<div><a class="btn" href="{{ url_for('admin_custom_field_edit', fid=f.id) }}">Edit</a> <a class="btn btn-secondary" href="{{ url_for('admin_custom_fields', tab=f.applies_to) }}">Back</a></div></div>
+<div class="card"><table>
+<tr><th>Field name</th><td>{{ f.label }}</td></tr><tr><th>Field key</th><td><code>{{ f.field_key }}</code></td></tr>
+<tr><th>Field type</th><td>{{ type_labels.get(f.field_type) }}</td></tr><tr><th>Applies to</th><td>{{ f.applies_to|title }}</td></tr>
+<tr><th>Required</th><td>{{ 'Yes' if f.is_required else 'No' }}</td></tr><tr><th>Unique</th><td>{{ 'Yes' if f.is_unique else 'No' }}</td></tr>
+<tr><th>Editable by user</th><td>{{ 'Yes' if f.is_editable else 'No' }}</td></tr>
+<tr><th>Status</th><td>{% if f.is_archived %}Archived{% elif f.is_active %}Active{% else %}Inactive{% endif %}</td></tr>
+<tr><th>Profiles using this field</th><td>{{ usage }}</td></tr><tr><th>Description</th><td>{{ f.description or '—' }}</td></tr>
+<tr><th>Default value</th><td>{{ f.default_value or '—' }}</td></tr>
+{% if options %}<tr><th>Options</th><td>{% for o in options %}{{ o.option_value }}{{ ' (inactive)' if not o.is_active }}{{ ', ' if not loop.last }}{% endfor %}</td></tr>{% endif %}
+<tr><th>Created</th><td>{{ f.created_at }} by {{ f.created_by_name or '—' }}</td></tr><tr><th>Last modified</th><td>{{ f.updated_at }} by {{ f.updated_by_name or '—' }}</td></tr></table></div>
+<div class="card"><h3>Change history</h3>{% if history %}<table><tr><th>When</th><th>Who</th><th>Action</th><th>Changes</th></tr>{% for h in history %}<tr><td>{{ h.created_at }}</td><td>{{ h.actor_name }} ({{ h.actor_role }})</td><td>{{ h.action }}</td><td><small>{{ h.changes or '' }}</small></td></tr>{% endfor %}</table>{% else %}<p class="muted">No history yet.</p>{% endif %}</div>{% endblock %}

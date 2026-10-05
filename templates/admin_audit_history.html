@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Audit History{% endblock %}{% block content %}
+<h1>Audit History{{ ' — all schools' if scope=='platform' else '' }}</h1><p class="muted">Append-only. Entries cannot be edited or deleted.</p>
+<div class="card" style="overflow:auto">{% if rows %}<table><thead><tr><th>Date/Time</th><th>User</th><th>Role</th>{% if scope=='platform' %}<th>School</th>{% endif %}<th>Action</th><th>Target</th><th>Changes</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.created_at }}</td><td>{{ r.actor_name }}</td><td>{{ r.actor_role }}</td>{% if scope=='platform' %}<td>{{ r.school_name or r.school_id }}</td>{% endif %}<td>{{ r.action }}</td><td>{{ r.entity_type }} #{{ r.entity_id }}</td><td><small>{{ r.changes or '' }}</small></td></tr>{% endfor %}</tbody></table>{% else %}<p class="muted">No entries yet.</p>{% endif %}</div>{% endblock %}

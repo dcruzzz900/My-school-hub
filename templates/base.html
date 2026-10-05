@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>{% block title %}{{ school_name }}{% endblock %}</title><link rel="manifest" href="{{ url_for('manifest') }}"><meta name="theme-color" content="{{ dashboard_primary_color }}"><link rel="icon" href="{{ url_for('static',filename='icons/icon-192.png') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/responsive-ui.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/ai-ui.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/ux-complete.css') }}">{% if web_font_google %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family={{ web_font_google }}&display=swap" rel="stylesheet">{% endif %}<style>:root{--app-font:{{ web_font_css|safe }};--theme-primary:{{ dashboard_primary_color }};--theme-secondary:{{ dashboard_secondary_color }};--theme-accent:{{ dashboard_accent_color }};}</style><script src="{{ url_for('static',filename='js/online-only.js') }}"></script></head>
+<body{% if session.get('user_id') %} data-auth-school-id="{{ session.get('school_id') }}"{% endif %}>
+{% if session.get('user_id') %}
+<div class="app-shell"><aside class="app-sidebar"><div class="brand"><div class="brand-mark">{% if school_logo_url %}<img src="{{ school_logo_url }}" alt="{{ school_name }}">{% else %}◆{% endif %}</div><div><b>{{ school_name }}</b><small>{{ school_tagline }}</small></div></div><div class="school-switcher">🏫 <span>{{ session.get('school_code') or 'School Portal' }}</span></div><nav>
+{% if session.get('role') == 'student' %}<a href="{{ url_for('student_dashboard') }}">⌂ <span>Dashboard</span></a><a href="{{ url_for('student_self_profile') }}">☺ <span>My Profile</span></a>{% else %}<a href="{{ url_for('dashboard') }}">⌂ <span>Dashboard</span></a>{% if session.get('user_id') %}<a href="{{ url_for('staff_profile', user_id=session.get('user_id')) }}">☺ <span>My Profile</span></a>{% endif %}{% endif %}
+<div class="nav-group">Academic</div>
+{% if session.get('role') in ['admin','sub_admin'] %}<a href="{{ url_for('admin_students') }}">◉ <span>Students</span></a><a href="{{ url_for('admin_teachers') }}">♙ <span>Teachers</span></a><a href="{{ url_for('admin_classes') }}">▤ <span>Classes</span></a><a href="{{ url_for('admin_subjects') }}">▦ <span>Subjects</span></a>{% else %}<a href="{{ url_for('my_class') }}">▣ <span>My Classes</span></a>{% endif %}
+<a href="{{ url_for('classes_list') }}">▣ <span>Results</span></a>
+{% if session.get('role') in ['admin','sub_admin'] %}<a href="{{ url_for('admin_class_subjects') }}">◈ <span>Assign Subjects</span></a>{% endif %}
+<a href="{{ url_for('staff_attendance') }}">✓ <span>Staff Attendance</span></a>{% if session.get('role') in ['admin','sub_admin'] or 'Registrar / Admissions Officer' in (session.get('rbac_roles') or []) %}<a href="{{ url_for('registrar_dashboard') }}">✎ <span>Admissions</span></a>{% endif %}
+<a href="{{ url_for('timetable_hub') }}">▦ <span>Timetable</span></a>{% if session.get('role') in ['admin','sub_admin'] %}<a href="{{ url_for('timetable_generate') }}">⚙ <span>Generate Timetable</span></a>{% endif %}
+<a href="{{ url_for('materials') }}">▤ <span>Learning Materials</span></a>
+<a href="{{ url_for('reports_hub') }}">▤ <span>Reports &amp; Analytics</span></a>
+{% if session.get('role') in ['admin','sub_admin'] %}<div class="nav-group">School Management</div><a href="{{ url_for('admin_parents') }}">👥 <span>Parents</span></a><a href="{{ url_for('admin_parent_links') }}">✓ <span>Parent Verification</span></a><a href="{{ url_for('signup_codes') }}">🔑 <span>Signup Codes</span></a><a href="{{ url_for('admin_grading') }}">◫ <span>Grading</span></a><a href="{{ url_for('admin_terms') }}">◷ <span>Sessions & Terms</span></a><a href="{{ url_for('admin_promote') }}">↗ <span>Promote Students</span></a>{% endif %}
+<div class="nav-group">Intelligence</div>
+<a class="ai-nav" href="{{ url_for('ai_command_center') }}">✦ <span>AI Assistant</span><em>AI</em></a>
+{% if session.get('role') in ['admin','sub_admin','teacher'] %}<a href="{{ url_for('teacher_parent_messages') }}">💬 <span>Parent Messages</span></a>{% endif %}
+<a href="{{ url_for('notifications_inbox') }}">🔔 <span>Notifications</span>{% if unread_notifications %}<em>{{ unread_notifications }}</em>{% endif %}</a>
+{% if session.get('role') in ['admin','sub_admin'] %}<div class="nav-group">Administration</div><a href="{{ url_for('admin_theme') }}">🎨 <span>Theme & Branding</span></a>{% if session.get('role') == 'admin' %}<a href="{{ url_for('admin_custom_fields') }}">☰ <span>Custom Fields</span></a><a href="{{ url_for('admin_audit_history') }}">📜 <span>Audit History</span></a>{% endif %}<a href="{{ url_for('admin_setup_wizard') }}">⚙ <span>School Setup</span></a><a href="{{ url_for('school_billing_portal') }}">◈ <span>Billing</span></a>{% endif %}
+<a href="{{ url_for('settings_hub') }}">⚙ <span>Settings</span></a>
+</nav><div class="sidebar-bottom"><div class="user-mini"><div class="avatar">{{ (session.get('name') or 'U')[0]|upper }}</div><div><b>{{ session.get('name') }}</b><small>{{ position_label or session.get('role') }}</small></div></div><a href="{{ url_for('logout') }}">↪ Logout</a></div></aside>
+<div class="app-main"><header class="topbar"><button class="sidebar-toggle" id="sidebarToggle">☰</button><form class="top-search" role="search" action="{{ url_for('search_page') }}" method="GET" autocomplete="off"><input type="search" id="topSearchInput" name="q" placeholder="Search students, classes, or features..." aria-label="Search" maxlength="60" minlength="2"><div id="topSearchResults" class="top-search-results" hidden></div></form><div class="top-actions"><a href="{{ url_for('notifications_inbox') }}" aria-label="Notifications">🔔</a>{% if me_avatar %}<a class="top-avatar top-avatar-link" href="{{ me_avatar.profile_url }}" title="My Profile" aria-label="Open my profile">{% if me_avatar.photo_url %}<img src="{{ me_avatar.photo_url }}" alt="{{ me_avatar.name }}">{% else %}{{ me_avatar.initial }}{% endif %}</a>{% endif %}</div></header>
+{% elif session.get('parent_id') %}<div class="parent-shell"><header class="parent-top"><div class="brand"><div class="brand-mark">{% if school_logo_url %}<img src="{{ school_logo_url }}" alt="{{ school_name }}">{% else %}◆{% endif %}</div><div><b>{{ school_name }}</b><small>Parent Portal</small></div></div><nav><a href="{{ url_for('parent_dashboard') }}">Dashboard</a><a href="{{ url_for('parent_children_page') }}">My Children</a><a href="{{ url_for('parent_link_child') }}">Link Child</a><a href="{{ url_for('parent_notifications') }}">Notifications{% if unread_notifications %} <em>{{ unread_notifications }}</em>{% endif %}</a><a href="{{ url_for('parent_logout') }}">Logout</a></nav></header>{% elif session.get('student_id') %}<div class="student-shell"><header class="student-top"><div class="brand"><div class="brand-mark">{% if school_logo_url %}<img src="{{ school_logo_url }}" alt="{{ school_name }}">{% else %}◆{% endif %}</div><div><b>{{ school_name }}</b><small>{{ school_tagline }}</small></div></div><nav><a href="{{ url_for('student_dashboard') }}">Dashboard</a><a href="{{ url_for('student_dashboard') }}#results">Results</a><a href="{{ url_for('student_materials') }}">Learning Materials</a><a class="ai-nav" href="{{ url_for('student_ai_tutor') }}">AI Tutor</a><a href="{{ url_for('student_notifications') }}">Notifications</a>{% if me_avatar %}<a class="top-avatar top-avatar-link" href="{{ me_avatar.profile_url }}" title="My Profile" aria-label="Open my profile">{% if me_avatar.photo_url %}<img src="{{ me_avatar.photo_url }}" alt="{{ me_avatar.name }}">{% else %}{{ me_avatar.initial }}{% endif %}</a>{% endif %}<a href="{{ url_for('student_logout') }}">Logout</a></nav></header>{% elif session.get('platform_admin_id') %}{% set ep = request.endpoint or '' %}<div class="platform-shell"><header class="platform-top"><div class="platform-bar"><div class="brand"><div class="brand-mark">🏫</div><div><b>My School Hub</b><small>Super Admin</small></div></div>
+<form class="platform-search" role="search" action="{{ url_for('platform_schools') }}" method="GET"><input type="search" name="q" value="{{ request.args.get('q','') if ep == 'platform_schools' else '' }}" placeholder="Search schools…" aria-label="Search schools"><button type="submit" aria-label="Search">🔍</button></form>
+<a class="platform-bell" href="{{ url_for('platform_notification_inbox') }}" aria-label="Notifications, {{ platform_unread or 0 }} unread" title="Notifications">🔔{% if platform_unread %}<em>{{ platform_unread }}</em>{% endif %}</a>
+<div class="platform-avatar" title="{{ session.get('platform_name') or session.get('name') or 'Super Admin' }}" aria-label="Signed in as Super Admin">{{ ((session.get('platform_name') or session.get('name') or 'S')[:1])|upper }}</div>
+<button type="button" class="platform-nav-toggle" aria-label="Menu" aria-expanded="false" onclick="platformNavToggle(this)" aria-controls="platformNav"><span aria-hidden="true">☰</span> <span class="platform-nav-label">Menu</span></button></div><nav id="platformNav" aria-label="Super Admin">
+<a href="{{ url_for('platform_dashboard') }}" class="{{ 'active' if ep == 'platform_dashboard' }}" {% if ep == 'platform_dashboard' %}aria-current="page"{% endif %}>🏠 Dashboard</a>
+<a href="{{ url_for('platform_schools') }}" class="{{ 'active' if ep in ('platform_schools','platform_control_center','platform_new_school','platform_school_verification','platform_school_provisioning') }}" {% if ep in ('platform_schools','platform_control_center','platform_new_school') %}aria-current="page"{% endif %}>🏫 Schools</a>
+<a href="{{ url_for('platform_subscription_manager') }}" class="{{ 'active' if ep in ('platform_subscription_manager','platform_subscription_history','platform_subscriptions','platform_plans') }}" {% if ep == 'platform_subscription_manager' %}aria-current="page"{% endif %}>💳 Subscriptions</a>
+<a href="{{ url_for('platform_users') }}" class="{{ 'active' if ep in ('platform_users','platform_roles','platform_new_role') }}" {% if ep == 'platform_users' %}aria-current="page"{% endif %}>👥 Users</a>
+<a href="{{ url_for('platform_reports_hub') }}" class="{{ 'active' if ep == 'platform_reports_hub' or ep.startswith('billing_finalization') or ep in ('platform_billing','platform_billing_analytics','platform_billing_reports') }}" {% if ep == 'platform_reports_hub' %}aria-current="page"{% endif %}>📊 Reports</a>
+<a href="{{ url_for('platform_audit_hub') }}" class="{{ 'active' if ep in ('platform_audit_hub','platform_audit','platform_audit_history','platform_security_audit') }}" {% if ep == 'platform_audit_hub' %}aria-current="page"{% endif %}>📜 Audit Logs</a>
+<a href="{{ url_for('platform_settings_hub') }}" class="{{ 'active' if ep in ('platform_settings_hub','platform_backups','platform_notifications','platform_activation_requests') }}" {% if ep == 'platform_settings_hub' %}aria-current="page"{% endif %}>⚙️ Settings</a>
+<a href="{{ url_for('platform_logout') }}">⎋ Logout</a></nav></header>
+<script>
+/* Super Admin menu: one button collapses/expands it on every screen size (wide screens start open, phones start closed).
+   The wide-screen choice is remembered; content below simply moves up/down because the menu leaves the layout. */
+(function(){
+  var n=document.getElementById('platformNav'), b=document.querySelector('.platform-nav-toggle');
+  if(!n||!b) return;
+  function wide(){return window.matchMedia('(min-width: 821px)').matches;}
+  function sync(){var open=wide()?!n.classList.contains('collapsed'):n.classList.contains('open');b.setAttribute('aria-expanded',open?'true':'false');}
+  try{if(wide()&&localStorage.getItem('platformNav')==='closed'){n.classList.add('collapsed');}}catch(e){}
+  window.platformNavToggle=function(btn){
+    if(wide()){var c=n.classList.toggle('collapsed');try{localStorage.setItem('platformNav',c?'closed':'open');}catch(e){}}
+    else{n.classList.toggle('open');}
+    sync();
+  };
+  window.addEventListener('resize',sync); sync();
+})();
+</script>{% endif %}
+<main class="container">
+{% if session.get('user_id') or session.get('student_id') or session.get('platform_admin_id') %}<div id="liveClock" class="live-clock no-print"></div>{% endif %}{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash flash-{{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main>
+{% if session.get('user_id') %}</div></div>{% elif session.get('parent_id') %}</div>{% elif session.get('student_id') %}</div>{% elif session.get('platform_admin_id') %}</div>{% endif %}
+<script>
+/* Time-based greeting from the viewer's own clock: morning < 12:00, afternoon 12:00-16:59, otherwise evening. */
+(function(){var h=new Date().getHours(),g=h<12?'Good morning':(h<17?'Good afternoon':'Good evening');
+document.querySelectorAll('[data-greeting]').forEach(function(e){e.textContent=g;});})();
+</script>
+<script>
+(function(){
+  const roots=[...document.querySelectorAll('.school-auth-page,.hub-auth-screen')];
+  if(!roots.length)return;
+  const posMap={left:'10% center',center:'50% center',right:'90% center'};
+  function apply(root,data){
+    const branded=!!data.branding && !!data.logo_url;
+    root.style.setProperty('--auth-bg-image',branded?`url(\"${data.logo_url}\")`:'none');
+    root.style.setProperty('--auth-opacity',branded?String(Math.max(.03,Math.min(.35,Number(data.opacity)||.10))):'0');
+    root.style.setProperty('--auth-position',posMap[data.position]||'50% center');
+    root.classList.toggle('auth-bg-soft',data.background_style==='soft');
+    root.classList.toggle('auth-bg-plain',!branded || data.background_style==='plain');
+    root.querySelectorAll('[data-auth-school-name]').forEach(el=>{el.textContent=branded && data.show_name ? (data.school_name||'My School Hub') : 'My School Hub';});
+    root.querySelectorAll('[data-auth-school-logo]').forEach(img=>{if(branded){img.src=data.logo_url;img.classList.remove('auth-branding-hidden');}else{img.removeAttribute('src');img.classList.add('auth-branding-hidden');}});
+    root.querySelectorAll('[data-auth-branding-chip]').forEach(el=>el.classList.toggle('auth-branding-hidden',!branded));
+  }
+  async function load(root,key,value){
+    value=(value||'').trim(); if(!value)return;
+    try{const r=await fetch(`{{ url_for('auth_branding') }}?${encodeURIComponent(key)}=${encodeURIComponent(value)}`,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}}); if(!r.ok)return; const data=await r.json(); apply(root,data);}catch(e){}
+  }
+  roots.forEach(root=>{
+    const schoolInput=root.querySelector('input[name="school_code"]');
+    const signupInput=root.querySelector('input[name="signup_code"]');
+    const customInput=root.querySelector('input[data-auth-key]');
+    const input=schoolInput||signupInput||customInput;
+    if(input){
+      let timer;
+      const key=schoolInput?'school_code':(signupInput?'signup_code':input.getAttribute('data-auth-key'));
+      const run=()=>{clearTimeout(timer);timer=setTimeout(()=>load(root,key,input.value),250);};
+      input.addEventListener('input',run); input.addEventListener('blur',run);
+    }
+  });
+})();
+</script>
+<script>document.querySelectorAll('input[data-max-bytes]').forEach(function(input){input.addEventListener('change',function(){var f=input.files&&input.files[0];if(!f)return;var max=Number(input.dataset.maxBytes||0);if(max&&f.size>max){alert(input.dataset.sizeMessage||'File is too large.');input.value='';}});});document.querySelectorAll('form[enctype="multipart/form-data"]').forEach(function(form){form.addEventListener('submit',function(e){var bad=false;form.querySelectorAll('input[data-max-bytes]').forEach(function(i){var f=i.files&&i.files[0],m=Number(i.dataset.maxBytes||0);if(f&&m&&f.size>m){bad=true;alert(i.dataset.sizeMessage||'File is too large.');i.value='';}});if(bad)e.preventDefault();});});document.getElementById('sidebarToggle')?.addEventListener('click',()=>document.querySelector('.app-sidebar')?.classList.toggle('open'));function updateLiveClock(){var x=schoolClockText();['liveClock','dashClock'].forEach(function(id){var e=document.getElementById(id);if(e&&x)e.textContent=x;});}
+/* Live clock: SERVER time (epoch sent with the page) advanced by the browser's monotonic timer, shown in the school's timezone.
+   The device's own date/time is never used, so changing it changes nothing. */
+var __srv0={{ (server_epoch or 0)|int }}*1000,__perf0=performance.now(),__tz='{{ clock_tz or "Africa/Lagos" }}';
+function schoolNow(){return new Date(__srv0+(performance.now()-__perf0));}
+function schoolClockText(){try{var d=schoolNow(),p=new Intl.DateTimeFormat('en-GB',{timeZone:__tz,weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(d),g={};p.forEach(function(x){g[x.type]=x.value});return g.weekday+', '+g.day+'/'+g.month+'/'+g.year+' — '+g.hour+':'+g.minute+' '+String(g.dayPeriod||'').toUpperCase();}catch(e){return '';}}
+updateLiveClock();setInterval(updateLiveClock,15000);
+/* Notifications: mark read in place, update every red counter at once */
+function setUnread(n){document.querySelectorAll('.app-sidebar a em,.parent-top a em').forEach(function(e){if(n>0){e.textContent=n;}else{e.remove();}});var c=document.getElementById('notifCount');if(c){c.textContent=n+' Unread';c.dataset.count=n;c.classList.toggle('has-unread',n>0);}document.querySelectorAll('[data-live-label]').forEach(function(b){b.textContent=n+' Unread';b.classList.toggle('zero',n===0);});if(n===0){document.querySelectorAll('[data-read-all]').forEach(function(f){f.remove();});}}
+(function(){var tok=document.querySelector('meta[name=csrf-token]');var csrf=tok?tok.content:'{{ csrf_token() }}';
+function post(url,done){fetch(url,{method:'POST',headers:{'X-CSRF-Token':csrf,'X-Requested-With':'fetch'},credentials:'same-origin'}).then(function(r){return r.json()}).then(done).catch(function(){});}
+document.addEventListener('click',function(ev){var item=ev.target.closest&&ev.target.closest('.notif-item.unread');if(item&&!ev.target.closest('a')){post('/notifications/'+item.dataset.id+'/read',function(j){if(j&&j.ok){item.classList.remove('unread');item.classList.add('read');var b=item.querySelector('.mark-read');if(b)b.remove();setUnread(j.unread);}});}});
+document.querySelectorAll('[data-read-all]').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();post('/notifications/read-all',function(j){if(j&&j.ok){document.querySelectorAll('.notif-item.unread').forEach(function(i){i.classList.remove('unread');i.classList.add('read');var b=i.querySelector('.mark-read');if(b)b.remove();});setUnread(0);}});});});})();</script>
+<script>
+(function(){
+  function tableTitle(table){
+    const explicit=table.getAttribute('data-table-title'); if(explicit) return explicit;
+    const card=table.closest('.card,.panel,section');
+    const heading=card && card.querySelector('h2,h3,h4');
+    if(heading && heading.textContent.trim()) return heading.textContent.trim();
+    const page=document.querySelector('.page-heading h1,.page-head h1,h1');
+    return page && page.textContent.trim() ? page.textContent.trim() : 'Data Table';
+  }
+  document.querySelectorAll('table').forEach((table)=>{
+    if(!table.querySelector('caption')){const c=document.createElement('caption');c.textContent=tableTitle(table);table.insertBefore(c,table.firstChild);}
+    if(!table.querySelector('thead')){const first=table.querySelector('tr'); if(first && first.querySelector('th')){const thead=document.createElement('thead');thead.appendChild(first);table.insertBefore(thead,table.tBodies[0]||null);}}
+  });
+})();
+</script>
+<script src="{{ url_for('static', filename='js/top-search.js') }}" defer></script></body></html>

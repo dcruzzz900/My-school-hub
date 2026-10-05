@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Timetable{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">ACADEMICS</div><h1>Automated Timetable</h1><p>Generate, validate, approve and publish tenant-scoped school timetables.</p></div></div>
+<div class="grid-4">
+  <div class="card"><b>Scheduled</b><h2>{{ counts.scheduled }}</h2></div>
+  <div class="card"><b>Blocking conflicts</b><h2>{{ counts.conflicts }}</h2></div>
+  <div class="card"><b>Current version</b><h2>{{ latest.version_number if latest else '—' }}</h2></div>
+  <div class="card"><b>Status</b><h2>{{ latest.status if latest else 'DRAFT' }}</h2></div>
+</div>
+<div class="card no-print">
+  {% if session.get('role') in ['admin','sub_admin'] %}
+  <a class="btn" href="{{ url_for('timetable_setup') }}">Timetable Setup</a>
+  <a class="btn" href="{{ url_for('timetable_generate') }}">Generate Timetable</a>
+  {% endif %}
+  {% if latest %}<a class="btn btn-gold" href="{{ url_for('timetable_version',version_id=latest.id) }}">Open Current Version</a>{% endif %}
+</div>
+<div class="card"><h3>Versions & Workflow</h3><div class="table-wrap"><table><caption>Versions & Workflow</caption><tr><th>Version</th><th>Status</th><th>Validation</th><th>Created</th><th>Actions</th></tr>{% for v in versions %}<tr><td>v{{ v.version_number }}</td><td>{{ v.status }}</td><td>{{ v.validation_status }}</td><td>{{ v.created_at }}</td><td><a class="btn btn-small" href="{{ url_for('timetable_version',version_id=v.id) }}">View</a></td></tr>{% else %}<tr><td colspan="5">No timetable versions yet.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h3>Class / Arm Timetables</h3><div class="table-wrap"><table><tr><th>Class / Arm</th><th>View</th></tr>{% for c in classes %}<tr><td>{{ c.name }}</td><td><a class="btn btn-small" href="{{ url_for('timetable_class',class_id=c.id) }}">View</a></td></tr>{% endfor %}</table></div></div>
+<div class="card"><h3>Teacher Timetables</h3><div class="table-wrap"><table><tr><th>Teacher</th><th>Role</th><th>View</th></tr>{% for t in teachers %}<tr><td>{{ t.name }}</td><td>{{ t.rbac_role or t.position or 'Teacher' }}</td><td><a class="btn btn-small" href="{{ url_for('timetable_teacher',teacher_id=t.id) }}">View</a></td></tr>{% endfor %}</table></div></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Result Preview{% endblock %}{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result-sheet.css') }}">
+<div class="no-print rs-toolbar-card card" style="margin-bottom:1rem">
+  <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center">
+    <a href="{{ url_for('result_settings') }}">&larr; Back to Result Display Settings</a>
+    <form method="GET" style="display:flex;gap:.4rem;align-items:center;margin-left:auto"><label style="margin:0">Student <select name="student_id" onchange="this.form.submit()">{% for s in students %}<option value="{{ s.id }}" {{ 'selected' if s.id == preview_student_id }}>{{ student_full_name(s) }}</option>{% endfor %}</select></label></form>
+    <a class="btn btn-gold" href="{{ url_for('result_print', student_id=preview_student_id, term_id=term.id) }}" target="_blank" rel="noopener">Open print layout</a>
+  </div>
+  <p class="muted" style="margin:.5rem 0 0">This is the actual result sheet of the selected student, drawn with your current Result Display Settings. What you see here is what prints and what the PDF contains. Nothing here is saved.</p>
+</div>
+<div class="rs-screen-wrap">{% include "_result_sheet.html" %}</div>
+{% endblock %}

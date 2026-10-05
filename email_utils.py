@@ -1,0 +1,98 @@
+"""Sends result notifications to parents via the school's own SMTP settings.
+
+Free-tier PythonAnywhere accounts restrict outbound network access, including
+raw SMTP connections, to a small allowlist of providers. This will work out
+of the box on a paid PythonAnywhere plan, on most other hosts, or with any
+SMTP-compatible transactional email provider (e.g. SendGrid, Mailgun) that
+exposes standard SMTP credentials. See DEPLOY_PYTHONANYWHERE.md for details.
+"""
+import smtplib
+import ssl
+import os
+from email.message import EmailMessage
+
+
+def send_platform_email(to_email, subject, body_text):
+    """Sends an email using the platform's own SMTP credentials (set via
+    environment variables), not any individual school's — used for things
+    like activation codes, which must go out before a school has any SMTP
+    settings of its own to send from. Returns (success: bool, message: str)
+    with the same shape as send_email, so callers can handle both the same
+    way: if this isn't configured, the caller is expected to still show
+    the info on-screen rather than silently failing."""
+    host = os.environ.get("PLATFORM_SMTP_HOST", "").strip()
+    from_email = os.environ.get("PLATFORM_SMTP_FROM_EMAIL", "").strip()
+    if not host or not from_email:
+        return False, "Platform email isn't configured (PLATFORM_SMTP_* environment variables)."
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    from_name = os.environ.get("PLATFORM_SMTP_FROM_NAME", "School Result System")
+    msg["From"] = f"{from_name} <{from_email}>"
+    msg["To"] = to_email
+    msg.set_content(body_text)
+
+    port = int(os.environ.get("PLATFORM_SMTP_PORT", "587"))
+    username = os.environ.get("PLATFORM_SMTP_USERNAME", "")
+    password = os.environ.get("PLATFORM_SMTP_PASSWORD", "")
+    use_tls = os.environ.get("PLATFORM_SMTP_USE_TLS", "1") == "1"
+
+    try:
+        if port == 465:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(host, port, timeout=15, context=context) as server:
+                if username:
+                    server.login(username, password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port, timeout=15) as server:
+                if use_tls:
+                    server.starttls(context=ssl.create_default_context())
+                if username:
+                    server.login(username, password)
+                server.send_message(msg)
+        return True, "Sent."
+    except Exception as e:
+        return False, f"Couldn't send platform email: {e}"
+
+
+def send_email(school, to_email, subject, body_text, attachment_bytes=None, attachment_filename=None):
+    """Returns (success: bool, message: str)."""
+    if not school or not school["smtp_host"] or not school["smtp_from_email"]:
+        return False, "Email hasn't been set up yet. Ask your admin to configure it under Setup → Email Settings."
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    from_name = school["smtp_from_name"] or school["name"] or "School"
+    msg["From"] = f"{from_name} <{school['smtp_from_email']}>"
+    msg["To"] = to_email
+    msg.set_content(body_text)
+
+    if attachment_bytes and attachment_filename:
+        msg.add_attachment(
+            attachment_bytes, maintype="application", subtype="pdf", filename=attachment_filename
+        )
+
+    host = school["smtp_host"]
+    port = school["smtp_port"] or 587
+    username = school["smtp_username"]
+    password = school["smtp_password"]
+    use_tls = bool(school["smtp_use_tls"])
+
+    try:
+        if port == 465:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(host, port, timeout=15, context=context) as server:
+                if username and password:
+                    server.login(username, password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port, timeout=15) as server:
+                if use_tls:
+                    server.starttls(context=ssl.create_default_context())
+                if username and password:
+                    server.login(username, password)
+                server.send_message(msg)
+        return True, f"Email sent to {to_email}."
+    except Exception as e:
+        return False, f"Couldn't send email to {to_email}: {e}"

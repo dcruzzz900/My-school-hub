@@ -1,0 +1,8 @@
+<div class="table-wrap"><table class="score-audit-table">
+<thead><tr><th>Date</th><th>Time</th><th>Action</th><th>Student</th><th>Subject</th><th>Class</th><th>Arm</th><th>Session · Term</th><th>Previous</th><th>New</th><th>Diff.</th><th>Staff</th><th>Staff ID</th><th>Role(s)</th><th>Status</th><th>Reason</th></tr></thead>
+<tbody>{% for h in history %}<tr>
+<td>{{ h.changed_at|school_dt("date") }}</td><td>{{ h.changed_at|school_dt("time") }}</td><td><b>{{ h.action or ('Score entered' if h.old_total is none else 'Score edited') }}</b></td><td>{{ h.student_name }}<br><small class="muted">{{ h.admission_no }}</small></td><td>{{ h.subject_name }}</td><td>{{ h.class_name }}</td><td>{{ h.class_arm or '—' }}</td><td>{{ h.session_name }} · {{ h.term_name }}</td>
+<td>{% if h.old_total is none %}<span class="muted">(none)</span>{% else %}<b>{{ h.old_total }}</b><br><small>{{ h.old_ca1 }}/{{ h.old_ca2 }}{% if h.old_ca3 or h.new_ca3 %}/{{ h.old_ca3 or 0 }}{% endif %}/{{ h.old_exam }}</small>{% endif %}</td>
+<td>{% if h.new_total is none or h.action == 'Score deleted' %}<span class="muted">(deleted)</span>{% else %}<b>{{ h.new_total }}</b><br><small>{{ h.new_ca1 }}/{{ h.new_ca2 }}{% if h.old_ca3 or h.new_ca3 %}/{{ h.new_ca3 or 0 }}{% endif %}/{{ h.new_exam }}</small>{% endif %}</td>
+<td style="color:{{ '#1a7f37' if h.difference > 0 else ('#b3261e' if h.difference < 0 else 'inherit') }}">{{ '+' if h.difference > 0 }}{{ h.difference }}</td>
+<td>{{ h.changed_by_name or 'Unknown' }}</td><td>{{ h.changed_by or '—' }}</td><td>{{ h.changed_by_role or '—' }}</td><td>{{ h.result_status }}</td><td>{{ h.reason or '—' }}</td></tr>{% endfor %}</tbody></table></div>

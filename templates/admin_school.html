@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}School Profile{% endblock %}
+{% block content %}
+<h1>School Profile</h1>
+<p style="color:#666; font-size:0.9rem;">
+    This name and logo appear on the dashboard, broadsheet, and terminal
+    results (on screen and in the downloaded PDFs). Update it anytime.
+</p>
+
+<div class="card" style="max-width:520px;">
+    <h3>Current Logo</h3>
+    {% if settings.logo_filename %}
+        <img src="{{ url_for('school_logo') }}" alt="Current logo" style="max-height:120px; margin-bottom:1rem; display:block;">
+        <form method="POST" action="{{ url_for('remove_school_logo') }}"
+              onsubmit="return confirm('Remove the current logo?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-small" style="background:#b3261e;" type="submit">Remove Logo</button>
+        </form>
+    {% else %}
+        <p style="color:#999; font-size:0.9rem;">No logo uploaded yet.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="max-width:520px;">
+    <h3>Update School Name &amp; Logo</h3>
+    <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>School Name</label>
+        <input type="text" name="school_name" value="{{ settings.name if settings else '' }}" required>
+        <div class="form-grid">
+          <label>School Contact Email<input type="email" name="registered_email" value="{{ settings.registered_email if settings else '' }}"></label>
+          <label>School Contact Phone<input type="text" name="registered_phone" value="{{ settings.registered_phone if settings else '' }}"></label>
+        </div>
+
+        <label>Logo Image (PNG, JPG, or GIF — leave blank to keep the current one)</label>
+        <input type="file" name="logo" accept=".png,.jpg,.jpeg,.gif">
+
+        <label style="margin-top:1rem;">Timezone</label>
+        <select name="timezone">
+            {% for tz in timezones %}
+            <option value="{{ tz }}" {% if settings and settings.timezone == tz %}selected{% endif %}>{{ tz }}</option>
+            {% endfor %}
+        </select>
+        <p style="font-size:0.82rem; color:#999; margin:0.3rem 0 0;">
+            Used by the live date/time card on the dashboard.
+        </p>
+
+        <label style="margin-top:1rem;">Date Format</label>
+        <select name="date_format">
+            <option value="dmy" {% if settings and settings.date_format == 'dmy' %}selected{% endif %}>Day/Month/Year (31 Dec 2026)</option>
+            <option value="mdy" {% if settings and settings.date_format == 'mdy' %}selected{% endif %}>Month/Day/Year (Dec 31, 2026)</option>
+            <option value="ymd" {% if settings and settings.date_format == 'ymd' %}selected{% endif %}>Year-Month-Day (2026-12-31)</option>
+        </select>
+
+        <label style="margin-top:1rem;">Result Comments</label>
+        <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem; margin-top:0.4rem;">
+            <input type="checkbox" name="auto_teacher_comment" style="width:auto;"
+                {% if settings and settings.auto_teacher_comment %}checked{% endif %}>
+            Automatically Generate Teacher's Comment
+        </label>
+        <label style="font-weight:normal; display:flex; align-items:center; gap:0.4rem;">
+            <input type="checkbox" name="auto_principal_comment" style="width:auto;"
+                {% if settings and settings.auto_principal_comment %}checked{% endif %}>
+            Automatically Generate Principal's Comment
+        </label>
+        <p style="font-size:0.85rem; color:#999; margin-top:0.6rem;">What appears on the result sheet (passport, logo, positions, dates, signatures…) is controlled in <a href="{{ url_for('result_settings') }}">School Setup → Result Display Settings</a>.</p>
+        <p style="font-size:0.85rem; color:#999; margin-top:0.3rem;">
+            When on, this term's comment is generated from the student's grade/average instead of
+            what's typed on the result — handy when scores come in by CSV upload and no one
+            types a comment by hand.
+        </p>
+
+        <label style="margin-top:1rem;">Fonts</label>
+        <label>App Display Font</label>
+        <select name="web_font">
+            {% for key, f in web_fonts.items() %}
+            <option value="{{ key }}" {% if settings and settings.web_font == key %}selected{% endif %}>{{ f.label }}</option>
+            {% endfor %}
+        </select>
+        <label>Result Sheet / Report Font</label>
+        <select name="pdf_font">
+            {% for f in pdf_fonts %}
+            <option value="{{ f }}" {% if settings and settings.pdf_font == f %}selected{% endif %}>{{ f }}</option>
+            {% endfor %}
+        </select>
+
+        <p class="muted" style="margin-top:1rem">Login &amp; signup branding is managed in <a href="{{ url_for('admin_theme') }}">Theme &amp; Branding</a>. Result sheet colours, logo/text alignment and what appears on the result are managed in <a href="{{ url_for('result_settings') }}">Result Display Settings</a>. Each setting lives in exactly one place.</p>
+
+        <button class="btn" type="submit" style="margin-top:1rem;">Save Changes</button>
+    </form>
+    <p style="margin-top:0.75rem;">
+        <a href="{{ url_for('result_design_preview') }}">Preview a sample result with these settings &rarr;</a>
+    </p>
+</div>
+
+<div class="card" style="max-width:760px;">
+  <h3>Complete School Setup</h3>
+  <p class="muted">Use these tenant-scoped setup areas for academic structure, assignments, grading, result configuration, branding and staff signatures.</p>
+  <div class="quick-links">
+    <a href="{{ url_for('admin_terms') }}">Sessions & Terms</a>
+    <a href="{{ url_for('admin_classes') }}">Classes & Arms</a>
+    <a href="{{ url_for('admin_subjects') }}">Subjects</a>
+    <a href="{{ url_for('admin_class_subjects') }}">Assign Subjects</a>
+    <a href="{{ url_for('admin_grading') }}">Grading</a>
+    <a href="{{ url_for('admin_theme') }}">Branding & Theme</a>
+    <a href="{{ url_for('admin_teachers') }}">Staff & Signatures</a>
+    <a href="{{ url_for('admin_setup_wizard') }}">Setup Readiness</a>
+    <a href="{{ url_for('timetable_setup') }}">Timetable Setup</a>
+  </div>
+</div>
+
+<div class="card" style="max-width:520px;">
+    <h3>Custom Subdomain</h3>
+    {% if base_domain %}
+    <p style="font-size:0.9rem; color:#666;">
+        Claim a subdomain and staff/students can sign in at
+        <code>https://&lt;your-subdomain&gt;.{{ base_domain }}</code> with this school's own branding
+        shown on the login page.
+    </p>
+    {% else %}
+    <p style="font-size:0.85rem; color:#b3261e;">
+        This deployment hasn't been configured with a base domain yet, so a claimed subdomain won't
+        resolve to anything until the hosting is set up for it — set the <code>BASE_DOMAIN</code>
+        environment variable (e.g. <code>results.yourschoolgroup.com</code>) and point a wildcard
+        DNS record at this app. You can still claim your subdomain name now.
+    </p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('set_school_subdomain') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Subdomain</label>
+        <div style="display:flex; align-items:center; gap:0.4rem;">
+            <input type="text" name="subdomain" value="{{ settings.subdomain or '' }}"
+                   placeholder="greenwood" pattern="[a-z0-9-]{3,30}" style="flex:1;">
+            <span style="color:#666;">.{{ base_domain or 'yourdomain.com' }}</span>
+        </div>
+        <button class="btn" type="submit" style="margin-top:0.75rem;">Save Subdomain</button>
+    </form>
+    {% if settings.subdomain %}
+    <p style="font-size:0.85rem; color:#1d7a4c; margin-top:0.5rem;">
+        Currently set to <b>{{ settings.subdomain }}</b>. Leave the field blank and save to remove it.
+    </p>
+    {% endif %}
+</div>
+
+<div class="card" style="max-width:520px;"><h3>Secure Staff Self-Registration</h3><p>Generate an unpredictable, expirable Staff Signup Code. Staff do not choose school, tenant, role or position during registration.</p>{% if settings.staff_signup_code %}<p>Latest code: <b>{{ settings.staff_signup_code }}</b></p>{% else %}<p>No active staff signup code.</p>{% endif %}<form method="POST" action="{{ url_for('set_staff_signup_code') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="generate"><label>Maximum usage<input type="number" name="max_usage" min="1" max="1000" value="1"></label><button class="btn">Generate Secure Code</button></form><form method="POST" action="{{ url_for('set_staff_signup_code') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="revoke"><button class="btn secondary">Revoke Active Staff Codes</button></form></div>
+
+{% endblock %}

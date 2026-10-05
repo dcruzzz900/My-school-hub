@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Financial Reports{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>Financial Reports</h1><p class="badge">Super Admin billing exports — no student-level data</p></div></div>
+<div style="margin-top:10px"><a class="btn btn-small" href="{{ url_for('platform_billing_analytics') }}">Billing Analytics</a> <a class="btn btn-small" href="{{ url_for('platform_billing_operations') }}">Billing Operations</a> <a class="btn btn-small" href="{{ url_for('platform_billing') }}">Billing & Payments</a></div>
+<div class="card">
+<h2>Report period</h2>
+<form method="get" action="{{ url_for('platform_billing_reports') }}" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+<label>Start date<br><input type="date" name="start" value="{{ start }}"></label>
+<label>End date<br><input type="date" name="end" value="{{ end }}"></label>
+<button class="btn" type="submit">Apply dates</button>
+</form>
+<p><small>Exports use the selected date range. Revenue includes confirmed payments only.</small></p>
+</div>
+<div class="card"><h2>Available reports</h2>
+<table><tr><th>Report</th><th>Contents</th><th>Download</th></tr>
+<tr><td>Payments</td><td>Payment references, provider, amount, status and confirmation dates.</td><td><a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='payments', start=start, end=end, format='csv') }}">CSV</a> <a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='payments', start=start, end=end, format='xlsx') }}">Excel</a></td></tr>
+<tr><td>Invoices</td><td>Invoices, plans, amounts, status, due dates and payment references.</td><td><a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='invoices', start=start, end=end, format='csv') }}">CSV</a> <a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='invoices', start=start, end=end, format='xlsx') }}">Excel</a></td></tr>
+<tr><td>Revenue Summary</td><td>Monthly confirmed revenue, payments and paid invoices.</td><td><a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='revenue', start=start, end=end, format='csv') }}">CSV</a> <a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='revenue', start=start, end=end, format='xlsx') }}">Excel</a></td></tr>
+<tr><td>Subscription Renewals</td><td>Current school subscription status, expiry and confirmed revenue in the period.</td><td><a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='renewals', start=start, end=end, format='csv') }}">CSV</a> <a class="btn btn-small" href="{{ url_for('platform_billing_report_export', report_name='renewals', start=start, end=end, format='xlsx') }}">Excel</a></td></tr>
+</table></div>
+{% endblock %}

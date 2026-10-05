@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}School Setup Wizard{% endblock %}
+{% block content %}
+<div class="dashboard-header">
+  <div>
+    <h1>School Setup Wizard</h1>
+    <p>Complete the school configuration in a safe, non-destructive sequence.</p>
+    <div class="tenant-chip">School ID: <strong>{{ school.school_code or '—' }}</strong> · Tenant ID: <strong>{{ school.tenant_id or '—' }}</strong></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Setup progress: {{ completed }}/{{ total }} ({{ percent }}%)</h3>
+  <div style="height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:12px 0 18px;">
+    <div style="height:100%;width:{{ percent }}%;background:#2563eb;"></div>
+  </div>
+  <p class="muted">The wizard is the authoritative pre-live checklist. It does not delete, reset, or replace school data.</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">{{ stats.classes }}</div><div class="label">Classes</div></div>
+  <div class="stat-box"><div class="num">{{ stats.subjects }}</div><div class="label">Subjects</div></div>
+  <div class="stat-box"><div class="num">{{ stats.teachers }}</div><div class="label">Teachers</div></div>
+  <div class="stat-box"><div class="num">{{ stats.students }}</div><div class="label">Students</div></div>
+</div>
+
+<div class="card">
+  <h3>Configuration sequence</h3>
+  <div class="grid-2">
+    {% for item in checks %}
+    <div class="card" style="margin:0 0 12px 0;">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+        <div>
+          <h4 style="margin:0 0 6px;">{{ loop.index }}. {{ item.label }}</h4>
+          <p style="margin:0;">{{ item.description }}</p>
+        </div>
+        {% if item.done %}<span class="badge">Complete</span>{% else %}<span class="badge">Pending</span>{% endif %}
+      </div>
+      <div style="margin-top:12px;"><a class="btn" href="{{ item.url }}">Open setup</a></div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h3>Live-data readiness</h3>
+  {% if readiness_status == 'ready' %}
+    <p><span class="badge">READY FOR LIVE DATA</span> This school passed the required setup checks.</p>
+    <p class="muted">Only the School Admin can change this readiness state by completing the checklist again after a future reset/reconfiguration.</p>
+  {% elif ready %}
+    <p>All required checks are complete. The School Admin can now mark this school <strong>READY FOR LIVE DATA</strong>.</p>
+    <form method="post" onsubmit="return confirm('Mark this school READY FOR LIVE DATA?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit">Mark READY FOR LIVE DATA</button>
+    </form>
+  {% else %}
+    <p><span class="badge">NOT READY</span> Complete all required checks above.</p>
+    <button class="btn" type="button" disabled>Mark READY FOR LIVE DATA</button>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>Before first result publication</h3>
+  <ul>
+    <li>Verify School ID and Tenant ID.</li>
+    <li>Confirm every teacher has the correct role and scope.</li>
+    <li>Confirm classes, arms and subjects are correct.</li>
+    <li>Verify student class placement.</li>
+    <li>Review grading and result design.</li>
+    <li>Run a test result with a non-production/test student before the first live publication.</li>
+    <li>Confirm a current production backup exists.</li>
+  </ul>
+</div>
+{% endblock %}

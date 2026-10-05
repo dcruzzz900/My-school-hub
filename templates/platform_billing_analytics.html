@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Billing Analytics{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>Billing Analytics</h1><p class="badge">Super Admin aggregated revenue and subscription metrics</p> <a class="btn btn-small" href="{{ url_for('platform_billing_reports') }}">Financial Reports</a></div></div>
+<div style="margin-top:10px"><a class="btn btn-small" href="{{ url_for('platform_billing_operations') }}">Billing Operations</a> <a class="btn btn-small" href="{{ url_for('platform_billing') }}">Billing & Payments</a></div>
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">₦{{ '%.2f'|format(total_confirmed) }}</div><div class="label">Confirmed revenue</div></div>
+  <div class="stat-box"><div class="num">{{ confirmed_count }}</div><div class="label">Confirmed payments</div></div>
+  <div class="stat-box"><div class="num">₦{{ '%.2f'|format(pending_amount) }}</div><div class="label">Pending payment value</div></div>
+  <div class="stat-box"><div class="num">₦{{ '%.2f'|format(overdue_amount) }}</div><div class="label">Overdue invoice value</div></div>
+  <div class="stat-box"><div class="num">{{ '%.1f'|format(collection_rate) }}%</div><div class="label">Invoice collection rate</div></div>
+</div>
+<div class="card"><h2>Revenue — last 12 months</h2><div style="overflow-x:auto"><table><tr><th>Month</th><th>Confirmed revenue</th><th>Payments</th></tr>{% for m in months %}<tr><td>{{ m.month }}</td><td>₦{{ '%.2f'|format(m.revenue) }}</td><td>{{ m.payments }}</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Schools by subscription plan</h2><div style="overflow-x:auto"><table><tr><th>Plan</th><th>Schools</th></tr>{% for r in plan_rows %}<tr><td>{{ r.plan }}</td><td>{{ r.schools }}</td></tr>{% else %}<tr><td colspan="2">No schools found.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Schools by subscription status</h2><div style="overflow-x:auto"><table><tr><th>Status</th><th>Schools</th></tr>{% for r in status_rows %}<tr><td>{{ r.status }}</td><td>{{ r.schools }}</td></tr>{% else %}<tr><td colspan="2">No schools found.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Top schools by confirmed revenue</h2><div style="overflow-x:auto"><table><tr><th>School</th><th>School ID</th><th>Confirmed revenue</th><th>Payments</th></tr>{% for s in top_revenue %}<tr><td>{{ s.name }}</td><td>{{ s.school_code }}</td><td>₦{{ '%.2f'|format(s.revenue) }}</td><td>{{ s.payments }}</td></tr>{% else %}<tr><td colspan="4">No confirmed payments yet.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Recent confirmed payments</h2><div style="overflow-x:auto"><table><tr><th>Reference</th><th>School</th><th>Invoice</th><th>Provider</th><th>Amount</th><th>Date</th></tr>{% for p in recent_confirmed %}<tr><td><code>{{ p.payment_reference }}</code></td><td>{{ p.school_name }}<br><small>{{ p.school_code }}</small></td><td>{{ p.invoice_number or '—' }}</td><td>{{ p.provider }}</td><td>₦{{ '%.2f'|format(p.amount_ngn) }}</td><td>{{ p.paid_at or '—' }}</td></tr>{% else %}<tr><td colspan="6">No confirmed payments yet.</td></tr>{% endfor %}</table></div></div>
+{% endblock %}

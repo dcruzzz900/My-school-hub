@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ receipt.receipt_number }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:760px;margin:auto">
+  <div class="dashboard-header"><div><h1>Payment Receipt</h1><p>{{ school.name }}</p></div></div>
+  <p><strong>Receipt:</strong> <code>{{ receipt.receipt_number }}</code></p>
+  <p><strong>Invoice:</strong> {{ receipt.invoice_number or '—' }}</p>
+  <p><strong>Plan:</strong> {{ receipt.plan_code or '—' }}</p>
+  <p><strong>Amount:</strong> ₦{{ '%.2f'|format(receipt.amount_ngn) }}</p>
+  <p><strong>Currency:</strong> {{ receipt.currency }}</p>
+  <p><strong>Provider:</strong> {{ receipt.provider }}</p>
+  <p><strong>Payment reference:</strong> <code>{{ receipt.payment_reference }}</code></p>
+  <p><strong>Issued:</strong> {{ receipt.issued_at }}</p>
+  <p><strong>School ID:</strong> <code>{{ school.school_code or '—' }}</code></p>
+  <p><strong>Tenant ID:</strong> <code>{{ school.tenant_id or '—' }}</code></p>
+  <hr>
+  <p>Thank you. This receipt represents a confirmed payment recorded for the school account.</p>
+  <button class="btn no-print" onclick="window.print()">Print receipt</button>
+  <a class="btn btn-small no-print" href="{{ url_for('school_billing_portal') }}">Back to billing</a>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Assign Role{% endblock %}
+{% block content %}
+<h1>Assign Role</h1>
+<div class="card">
+<form method="POST" class="form-grid">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>School<select name="school_id" onchange="window.location='{{ url_for('platform_role_new') }}?school_id='+this.value"><option value="">Select school</option>{% for s in schools %}<option value="{{ s.id }}" {% if selected_school==s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+<label>User<select name="user_id" required><option value="">Select user</option>{% for u in users %}<option value="{{ u.id }}">{{ u.name }} — {{ u.username }}</option>{% endfor %}</select></label>
+<label>School Level<select name="school_level">{% for l in levels %}<option>{{ l }}</option>{% endfor %}</select></label>
+<label>Role<select name="role" required>{% for r in roles %}<option>{{ r }}</option>{% endfor %}</select></label>
+<label class="full">Reason<textarea name="reason" rows="3" placeholder="Why is this role being assigned?"></textarea></label>
+<div class="full"><button class="btn btn-gold" type="submit">Assign Role</button> <a class="btn" href="{{ url_for('platform_roles') }}">Cancel</a></div>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Custom Result Fields{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SCHOOL SETUP</div><h1>Custom Result Fields</h1><p>Add information that is not on the standard result sheet — House, Club, Award, Behaviour, Health Remark, a special achievement… Choose where each field appears. Only switched-on fields are shown anywhere.</p></div></div>
+{% macro form_fields(f) %}
+<label>Field name<input name="label" maxlength="40" required value="{{ f.label if f else '' }}" placeholder="e.g. House"></label>
+<label>Type<select name="field_type">{% for k, n in field_types %}<option value="{{ k }}" {{ 'selected' if f and f.field_type == k }}>{{ n }}</option>{% endfor %}</select></label>
+<label>Choices <small class="muted">(for a choice list, comma separated)</small><input name="options" maxlength="300" value="{{ f.options if f and f.options else '' }}" placeholder="Red, Blue, Green"></label>
+<label>Value is<select name="scope"><option value="term" {{ 'selected' if not f or f.scope == 'term' }}>Different each term (e.g. Behaviour)</option><option value="student" {{ 'selected' if f and f.scope == 'student' }}>Fixed for the student (e.g. House)</option></select></label>
+<div class="role-checks"><label class="role-check"><input type="checkbox" name="enabled" value="1" {{ 'checked' if not f or f.enabled }}> Enabled</label><label class="role-check"><input type="checkbox" name="show_on_result" value="1" {{ 'checked' if not f or f.show_on_result }}> Show on result sheet</label><label class="role-check"><input type="checkbox" name="show_on_profile" value="1" {{ 'checked' if not f or f.show_on_profile }}> Show on student profile</label></div>
+{% endmacro %}
+<div class="card" style="max-width:820px"><h3>Add a field</h3>
+<form method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="add">{{ form_fields(none) }}<button class="btn">Add field</button></form></div>
+<div class="card" style="max-width:820px"><h3>Your fields</h3>{% if not fields %}<p class="muted">No custom fields yet.</p>{% endif %}
+{% for f in fields %}<form method="POST" style="border-bottom:1px solid #eee;padding:.7rem 0"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="field_id" value="{{ f.id }}">
+<b>{{ f.label }}</b> {% if not f.enabled %}<span class="role-chip">off</span>{% endif %}{{ form_fields(f) }}
+<button class="btn" name="action" value="save">Save</button> <button class="btn btn-secondary" name="action" value="delete" onclick="return confirm('Delete this field?')">Delete</button></form>{% endfor %}</div>
+{% endblock %}

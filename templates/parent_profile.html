@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Parent Profile{% endblock %}
+{% block content %}
+<h1>Parent / Guardian Profile</h1>
+<p><a href="{{ url_for('student_profile', student_id=student.id) }}">&larr; Back to {{ student_full_name(student) }}'s Profile</a></p>
+
+<div class="card" style="max-width:640px;">
+    <h3>Contact Information</h3>
+    <p><b>Full Name:</b> {{ student.parent_name or '—' }}</p>
+    <p><b>Relationship:</b> {{ student.parent_relationship or '—' }}</p>
+    <p><b>Phone:</b> {{ student.parent_phone or '—' }}</p>
+    <p><b>Email:</b> {{ student.parent_email or '—' }}</p>
+    <p><b>Address:</b> {{ student.parent_address or '—' }}</p>
+    <p style="font-size:0.8rem; color:#999; margin-top:0.75rem;">
+        This profile is assembled from the parent/guardian contact fields on each student's record —
+        there isn't a separate parent login yet. To update this information, edit any of the children below.
+    </p>
+</div>
+
+
+{% if accounts %}<div class="card" style="max-width:640px;">
+    <h3>Linked parent account{{ 's' if accounts|length > 1 }}</h3>
+    {% for a in accounts %}<div style="display:flex;gap:1rem;align-items:center;margin:.6rem 0">
+        {% if can_see_parent_photo %}{% if a.photo_filename %}<img src="{{ url_for('parent_photo', parent_id=a.id) }}" alt="Parent passport" style="width:90px;height:110px;object-fit:cover;border-radius:6px">{% else %}<div style="width:90px;height:110px;border:1px dashed #ccc;border-radius:6px"></div>{% endif %}{% endif %}
+        <div><b>{{ a.name }}</b><br><small>@{{ a.username }}{% if a.email %} · {{ a.email }}{% endif %}{% if a.phone %} · {{ a.phone }}{% endif %}</small></div></div>{% endfor %}
+</div>
+{% endif %}
+<div class="card" style="max-width:640px;">
+    <h3>Linked Children ({{ siblings|length }})</h3>
+    {% if siblings %}
+    <table>
+        <tr><th>Name</th><th>Class</th><th>Status</th><th></th></tr>
+        {% for s in siblings %}
+        <tr>
+            <td>{{ student_full_name(s) }}</td>
+            <td>{{ s.class_name }}</td>
+            <td>{{ s.status or 'Active' }}</td>
+            <td><a class="btn btn-small" href="{{ url_for('student_profile', student_id=s.id) }}">View Profile</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No linked children found.</p>
+    {% endif %}
+</div>
+{% endblock %}

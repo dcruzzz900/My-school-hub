@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}School Roles & Permissions{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>Roles & Permissions</h1><p class="badge">School staff assignments · Nursery · Primary · Secondary</p></div></div>
+<div class="card">
+<h3>Assign a school role</h3>
+<form method="POST" class="form-grid">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>User<select name="user_id" required><option value="">Select staff</option>{% for u in users %}<option value="{{ u.id }}">{{ u.name }} — {{ u.role }}</option>{% endfor %}</select></label>
+<label>School Level<select name="school_level">{% for l in levels %}<option>{{ l }}</option>{% endfor %}</select></label>
+<label>Role<select name="role" required>{% for r in roles if r != 'School Admin' %}<option>{{ r }}</option>{% endfor %}</select></label>
+<label class="full">Reason<textarea name="reason" rows="2"></textarea></label>
+<div class="full"><button class="btn btn-gold">Assign Role</button></div>
+</form>
+</div>
+<div class="card"><h3>Scope &amp; permission controls</h3><p>Scope is enforced server-side.</p>{% for a in assignments if a.status == 'active' %}<details class="card" style="margin:10px 0"><summary><strong>{{ a.user_name }}</strong> — {{ a.role }} — {{ a.school_level }}</summary><form method="POST" action="{{ url_for('admin_role_scope',assignment_id=a.id) }}" class="form-grid" style="margin-top:12px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>School Level<select name="school_level">{% for l in levels %}<option {% if l==a.school_level %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></label><label>Department<input name="department" value="{{ a.department or '' }}"></label><label>Class ID<input type="number" name="class_id" value="{{ a.class_id or '' }}"></label><label>Class Arm<input name="class_arm" value="{{ a.class_arm or '' }}"></label><label>Subject ID<input type="number" name="subject_id" value="{{ a.subject_id or '' }}"></label><label>Start Date<input type="date" name="start_date" value="{{ a.start_date or '' }}"></label><label>Expiry Date<input type="date" name="end_date" value="{{ a.end_date or '' }}"></label><div class="full"><button class="btn btn-gold">Save Scope</button></div></form><form method="POST" action="{{ url_for('admin_role_permissions',assignment_id=a.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><strong>Permissions:</strong>{% for x in ['view','create','edit','delete','approve','verify','finalize','lock','publish','import','export','manage_users'] %}<label style="display:inline-block;margin:6px"><input type="checkbox" name="permissions" value="{{ x }}" {% if x in (granted.get(a.id) if a.id in granted else ROLE_CATALOG.get(a.role,[])) %}checked{% endif %}> {{ x.replace('_',' ').title() }}</label>{% endfor %}<button class="btn">Save Permissions</button></form></details>{% endfor %}</div><div class="card" style="overflow-x:auto">
+<table><tr><th>User</th><th>Role</th><th>Level</th><th>Status</th><th>Dates</th><th>Action</th></tr>
+{% for a in assignments %}<tr><td>{{ a.user_name }}</td><td>{{ a.role }}</td><td>{{ a.school_level }}</td><td>{{ a.status }}</td><td>{{ a.start_date or 'Now' }} → {{ a.end_date or 'No expiry' }}</td><td>{% if a.status=='active' %}<form method="POST" action="{{ url_for('admin_role_revoke',assignment_id=a.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small">Revoke</button></form>{% endif %}</td></tr>{% else %}<tr><td colspan="6">No assignments.</td></tr>{% endfor %}
+</table>
+</div>
+{% endblock %}

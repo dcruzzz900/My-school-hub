@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Billing & Subscription — {{ school.name }}{% endblock %}
+{% block content %}
+<div class="dashboard-header">
+  <div><h1>Billing & Subscription</h1><p>School billing records, subscription status and payment receipts.</p></div>
+</div>
+
+<div class="card">
+  <h2>Current subscription</h2>
+  <div class="dashboard-grid">
+    <div><strong>School ID</strong><br><code>{{ school.school_code or '—' }}</code></div>
+    <div><strong>Tenant ID</strong><br><code>{{ school.tenant_id or '—' }}</code></div>
+    <div><strong>Plan</strong><br>{{ plan.name if plan else (school.subscription_plan or 'Legacy / Existing') }}</div>
+    <div><strong>Status</strong><br>{{ state.label }}</div>
+    <div><strong>Days remaining</strong><br>{{ state.days_left if state.days_left is not none else 'Not applicable' }}</div>
+    <div><strong>Expiry</strong><br>{{ school.trial_ends_at if state.status == 'trial' else (school.subscription_ends_at or 'Not applicable') }}</div>
+  </div>
+  {% if state.status in ['expired', 'suspended', 'cancelled'] %}
+  <p class="alert alert-error">Your school currently does not have active subscription access. Contact the platform administrator for renewal.</p>
+  {% elif state.days_left is not none and state.days_left <= 14 %}
+  <p class="alert alert-warning">Your subscription/trial is approaching expiry. Please arrange renewal early.</p>
+  {% endif %}
+</div>
+
+{% if plan %}
+<div class="card">
+  <h2>Plan usage</h2>
+  <div class="dashboard-grid">
+    <div><strong>Students</strong><br>{{ limits.students.used }} / {{ limits.students.limit or 'Unlimited' }}{% if limits.students.limit %} ({{ limits.students.percent }}%){% endif %}</div>
+    <div><strong>Teachers</strong><br>{{ limits.teachers.used }} / {{ limits.teachers.limit or 'Unlimited' }}{% if limits.teachers.limit %} ({{ limits.teachers.percent }}%){% endif %}</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Invoices</h2>
+  <div style="overflow-x:auto"><table>
+    <tr><th>Invoice</th><th>Plan</th><th>Amount</th><th>Status</th><th>Issued</th><th>Due</th><th>Payment reference</th></tr>
+    {% for i in invoices %}
+    <tr><td><code>{{ i.invoice_number }}</code></td><td>{{ i.plan_code }}</td><td>₦{{ '%.2f'|format(i.amount_ngn) }}</td><td>{{ i.status }}</td><td>{{ i.issued_at }}</td><td>{{ i.due_at or '—' }}</td><td>{{ i.payment_reference or '—' }}</td></tr>
+    {% else %}<tr><td colspan="7">No invoices have been issued yet.</td></tr>{% endfor %}
+  </table></div>
+</div>
+
+<div class="card">
+  <h2>Payment status</h2>
+  <div style="overflow-x:auto"><table>
+    <tr><th>Reference</th><th>Invoice</th><th>Provider</th><th>Amount</th><th>Status</th><th>Paid</th><th>Confirmed</th></tr>
+    {% for p in payments %}
+    <tr><td><code>{{ p.payment_reference }}</code></td><td>{{ p.invoice_number or '—' }}</td><td>{{ p.provider }}</td><td>₦{{ '%.2f'|format(p.amount_ngn) }}</td><td>{{ p.status }}</td><td>{{ p.paid_at or '—' }}</td><td>{{ p.confirmed_at or '—' }}</td></tr>
+    {% else %}<tr><td colspan="7">No payment records yet.</td></tr>{% endfor %}
+  </table></div>
+</div>
+
+<div class="card">
+  <h2>Receipts</h2>
+  <div style="overflow-x:auto"><table>
+    <tr><th>Receipt</th><th>Invoice</th><th>Amount</th><th>Provider</th><th>Reference</th><th>Issued</th><th></th></tr>
+    {% for r in receipts %}
+    <tr><td><code>{{ r.receipt_number }}</code></td><td>{{ r.invoice_number or '—' }}</td><td>₦{{ '%.2f'|format(r.amount_ngn) }}</td><td>{{ r.provider }}</td><td>{{ r.payment_reference }}</td><td>{{ r.issued_at }}</td><td><a class="btn btn-small" href="{{ url_for('school_billing_receipt', receipt_id=r.id) }}">View / Print</a></td></tr>
+    {% else %}<tr><td colspan="7">No receipts available yet.</td></tr>{% endfor %}
+  </table></div>
+</div>
+
+<div class="card">
+  <h2>Email billing notifications</h2>
+  <p>Billing reminders are sent only to the school's registered administrator email when platform email delivery is enabled.</p>
+  <form method="post" action="{{ url_for('billing_email_preferences') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label><input type="checkbox" name="billing_email_notifications" value="1" {% if school.billing_email_notifications|default(1) %}checked{% endif %}> Send billing reminders by email</label>
+    <button class="btn btn-small" type="submit">Save preference</button>
+  </form>
+  <p><small>Registered billing email: {{ school.registered_email or 'Not configured' }}</small></p>
+</div>
+
+{% if email_deliveries %}
+<div class="card">
+  <h2>Email delivery history</h2>
+  <div style="overflow-x:auto"><table>
+    <tr><th>Type</th><th>Recipient</th><th>Status</th><th>Attempts</th><th>Sent</th></tr>
+    {% for e in email_deliveries %}
+    <tr><td>{{ e.notification_type }}</td><td>{{ e.recipient }}</td><td>{{ e.status }}{% if e.last_error %}<br><small>{{ e.last_error }}</small>{% endif %}</td><td>{{ e.attempt_count }}</td><td>{{ e.sent_at or '—' }}</td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Renewal instructions</h2>
+  <ol>
+    <li>Ask the platform administrator to issue a renewal invoice for your school.</li>
+    <li>Pay using the payment method supplied by the platform administrator.</li>
+    <li>Keep the payment reference/transaction ID.</li>
+    <li>The platform administrator or verified payment gateway confirms the payment.</li>
+    <li>After confirmation, your subscription dates and plan status are updated automatically.</li>
+  </ol>
+  <p><strong>Security:</strong> Never send your school password, platform credentials, Paystack secret key or Flutterwave secret hash as proof of payment.</p>
+</div>
+{% endblock %}

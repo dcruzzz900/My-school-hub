@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Recover Account · My School Hub{% endblock %}
+{% block content %}
+<div class="beautiful-auth school-auth-page" data-auth-branding-root>
+  <section class="beautiful-auth-hero platform-hero"><div class="hub-brand"><img data-auth-school-logo class="school-auth-brand-logo small auth-branding-hidden" alt="School logo"><div><strong data-auth-school-name>My School Hub</strong><span>ACCOUNT RECOVERY</span></div></div><div><div class="hub-eyebrow">ACCOUNT RECOVERY</div><h1>Recover your account</h1><p>Enter your username and continue through the secure recovery steps.</p></div></section>
+  <section class="beautiful-auth-form"><a class="back-home" href="{{ url_for('login') }}">← Back</a><div class="form-brand"><img data-auth-school-logo class="school-auth-brand-logo small auth-branding-hidden" alt="School logo"><div><strong data-auth-school-name>Account Recovery</strong><small>Secure password recovery</small></div></div><div class="form-intro"><h2>Forgot Your Password?</h2><p>Enter your username and we'll ask your security question.</p></div><form method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Username<input type="text" name="username" data-auth-key="username" required autofocus autocomplete="username"></label><button class="hub-primary-btn" type="submit">Continue <span>→</span></button></form><p class="form-notice">If you cannot recover the account, ask your school administrator to help reset it.</p></section>
+</div>
+{% endblock %}

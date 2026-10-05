@@ -1,0 +1,39 @@
+<div class="card" id="datetime-card" style="text-align:center;">
+    <div id="datetime-card-time" style="font-size:1.6rem; font-weight:600; letter-spacing:0.02em;">--:--:--</div>
+    <div id="datetime-card-date" style="color:#666; margin-top:0.1rem;">Loading date…</div>
+</div>
+<script>
+(function () {
+    var tz = {{ (school_timezone or 'Africa/Lagos')|tojson }};
+    var fmt = {{ (school_date_format or 'dmy')|tojson }};
+    var timeEl = document.getElementById('datetime-card-time');
+    var dateEl = document.getElementById('datetime-card-date');
+
+    function render() {
+        var now = new Date();
+        try {
+            timeEl.textContent = new Intl.DateTimeFormat('en-GB', {
+                timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true,
+            }).format(now);
+            var parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: tz, weekday: 'long', year: 'numeric', month: 'long', day: '2-digit',
+            }).formatToParts(now).reduce(function (acc, p) { acc[p.type] = p.value; return acc; }, {});
+            var dateText;
+            if (fmt === 'mdy') {
+                dateText = parts.weekday + ', ' + parts.month + ' ' + parts.day + ', ' + parts.year;
+            } else if (fmt === 'ymd') {
+                var mm = new Intl.DateTimeFormat('en-GB', { timeZone: tz, month: '2-digit' }).format(now);
+                dateText = parts.year + '-' + mm + '-' + parts.day + ' (' + parts.weekday + ')';
+            } else {
+                dateText = parts.weekday + ', ' + parts.day + ' ' + parts.month + ' ' + parts.year;
+            }
+            dateEl.textContent = dateText;
+        } catch (e) {
+            timeEl.textContent = now.toLocaleTimeString();
+            dateEl.textContent = now.toLocaleDateString();
+        }
+    }
+    render();
+    setInterval(render, 1000);
+})();
+</script>

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<h1>Notifications <span class="notif-count {{ 'has-unread' if unread_notifications }}" id="notifCount" data-count="{{ unread_notifications }}">{{ unread_notifications }} Unread</span></h1>
+{% if session.get('role') in ['admin', 'sub_admin'] %}
+<div class="no-print" style="margin-bottom:1rem;"><a class="btn" href="{{ url_for('notifications_compose') }}">Compose Notification</a></div>
+{% endif %}
+{% if unread_notifications %}<form method="POST" action="{{ url_for('notification_mark_all_read') }}" data-read-all style="margin-bottom:.8rem"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small">Mark all as read</button></form>{% endif %}
+<div class="card" id="notifList">
+    {% if notifications %}
+    {% for n in notifications %}
+    <div class="notif-item {{ 'unread' if not n.is_read else 'read' }}" data-id="{{ n.id }}" tabindex="0">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; flex-wrap:wrap;">
+            <h3 style="margin:0;">{{ n.title }}</h3>
+            <span style="font-size:0.8rem; color:#666;">{{ n.created_at|dmy }}</span>
+        </div>
+        <p style="margin:0.3rem 0; white-space:pre-wrap;">{{ n.message }}</p>
+        <p style="font-size:0.8rem; color:#666; margin:0;">From: {{ n.sender_label }}{% if n.school_name %} — {{ n.school_name }}{% elif n.school_id is none %} — All Schools{% endif %}
+        {% if not n.is_read %}<button type="button" class="btn btn-small mark-read" style="margin-left:.6rem">Mark as read</button>{% endif %}</p>
+    </div>
+    {% endfor %}
+    {% else %}<p style="color:#666;">No notifications yet.</p>{% endif %}
+</div>
+{% endblock %}

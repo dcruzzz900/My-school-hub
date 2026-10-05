@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}Register a student{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">REGISTRAR / ADMISSIONS</div><h1>Register a student</h1><p>The admission number is generated for you (next: <b>{{ next_adm }}</b>) unless you type your own. Numbers are unique within this school.</p></div></div>
+<form method="POST" enctype="multipart/form-data" class="card" style="max-width:900px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<h3>Student</h3><div class="form-grid">
+<label>First name<input name="first_name" required maxlength="60" value="{{ form.get('first_name','') }}"></label><label>Last name<input name="last_name" required maxlength="60" value="{{ form.get('last_name','') }}"></label>
+<label>Other names<input name="other_names" maxlength="60" value="{{ form.get('other_names','') }}"></label>
+<label>Gender<select name="gender" required><option value="">Select</option><option value="M" {{ 'selected' if form.get('gender')=='M' }}>Male</option><option value="F" {{ 'selected' if form.get('gender')=='F' }}>Female</option></select></label>
+<label>Date of birth<input type="date" name="date_of_birth" max="{{ today }}" value="{{ form.get('date_of_birth','') }}"></label><label>Religion<input name="religion" maxlength="40" value="{{ form.get('religion','') }}"></label></div>
+<h3>Class &amp; numbers</h3><div class="form-grid">
+<label>Class / Arm<select name="class_id" required><option value="">Select</option>{% for c in classes %}<option value="{{ c.id }}" {{ 'selected' if form.get('class_id')|string == c.id|string }}>{{ c.name }}</option>{% endfor %}</select></label>
+<label>Admission number<input name="admission_no" maxlength="40" placeholder="{{ next_adm }}" value="{{ form.get('admission_no','') }}"></label>
+<label class="role-check"><input type="checkbox" name="auto_admission" value="1" {{ 'checked' if not form }}> Generate the admission number</label>
+<label>Register number<input name="register_no" maxlength="40" value="{{ form.get('register_no','') }}"></label>
+<label class="role-check"><input type="checkbox" name="auto_register" value="1" {{ 'checked' if not form }}> Generate the register number for the class</label></div>
+<h3>Admission details</h3><div class="form-grid"><label>Admission date<input type="date" name="admission_date" max="{{ today }}" value="{{ form.get('admission_date', today) }}"></label><label>Previous school<input name="previous_school" maxlength="120" value="{{ form.get('previous_school','') }}"></label><label>Notes<input name="admission_notes" maxlength="300" value="{{ form.get('admission_notes','') }}"></label></div>
+<h3>Parent / guardian</h3><div class="form-grid"><label>Name<input name="parent_name" maxlength="100" value="{{ form.get('parent_name','') }}"></label><label>Phone<input name="parent_phone" maxlength="30" value="{{ form.get('parent_phone','') }}"></label><label>Email<input name="parent_email" maxlength="120" value="{{ form.get('parent_email','') }}"></label><label>Address<input name="parent_address" maxlength="200" value="{{ form.get('parent_address','') }}"></label></div>
+<label>Passport photograph (optional, PNG/JPG/GIF up to 500 KB)<input type="file" name="photo" accept="image/png,image/jpeg,image/gif"></label>
+<button class="btn" type="submit" style="margin-top:1rem">Register student</button></form>{% endblock %}

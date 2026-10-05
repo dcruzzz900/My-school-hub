@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Student Profile{% endblock %}
+{% block content %}
+<h1>Student Profile</h1>
+
+<div class="card">
+    <h3>{{ student_full_name(student) }}</h3>
+    <div class="grid-2">
+        <div>
+            {% if student.photo_filename %}
+            <img src="{{ url_for('student_photo', student_id=student.id) }}" alt="Passport photo"
+                 style="max-width:120px; max-height:150px; display:block; margin-bottom:0.75rem; border:1px solid #ddd;">
+            {% endif %}
+            <p><b>Admission No. / Register No.:</b> {{ student.admission_no }}</p>
+            <p><b>Class / Arm:</b> {{ class_row.name }}</p>
+            <p><b>Gender:</b> {{ student.gender or '—' }}</p>
+            <p><b>Date of Birth:</b> {{ student.date_of_birth|dmy if student.date_of_birth else '—' }}</p>
+            <p><b>Religion:</b> {{ student.religion or '—' }}</p>
+            <p><b>Status:</b> {{ student.status or 'Active' }}</p>
+            <p><b>Student's Phone:</b> {{ student.phone or '—' }}</p>
+            <p><b>State / LGA:</b> {{ student.state or '—' }} / {{ student.lga or '—' }}</p>
+            <p><b>Tribe:</b> {{ student.tribe or '—' }}</p>
+            <p><b>Address:</b> {{ student.address or '—' }}</p>
+            <p><b>Date of Admission:</b> {{ student.date_of_admission|dmy if student.date_of_admission else '—' }}</p>
+            <p><a class="btn btn-small" href="{{ url_for('student_profile_edit', student_id=student.id) }}">Edit Full Profile</a></p>
+        </div>
+        <div>
+            <p><b>Parent/Guardian Name:</b> {{ student.parent_name or '—' }}</p>
+            <p><b>Relationship:</b> {{ student.parent_relationship or '—' }}</p>
+            <p><b>Parent/Guardian Address:</b> {{ student.parent_address or '—' }}</p>
+            <p><b>Parent/Guardian Email:</b> {{ student.parent_email or '—' }}</p>
+            <p><b>Parent/Guardian Phone:</b> {{ student.parent_phone or '—' }}</p>
+            {% if student.parent_phone or student.parent_email %}
+            <p><a href="{{ url_for('parent_profile', student_id=student.id) }}">View Parent Profile &rarr;</a></p>
+            {% endif %}
+            <p><b>Student Login:</b> {% if student.username %}{{ student.username }} (active){% else %}Not set up{% endif %}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Passport Photo</h3>
+    <p style="font-size:0.9rem; color:#666;">Optional. Requires an internet connection to upload.</p>
+    <form method="POST" action="{{ url_for('upload_student_photo', student_id=student.id) }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="file" name="photo" data-max-bytes="512000" data-size-message="Passport image must not exceed 500 KB." accept=".png,.jpg,.jpeg,.gif" required><small>Accepted: PNG, JPG, JPEG, GIF · Maximum 500 KB</small>
+        <button class="btn btn-small" type="submit">{% if student.photo_filename %}Replace Photo{% else %}Upload Photo{% endif %}</button>
+    </form>
+    {% if student.photo_filename %}
+    <form method="POST" action="{{ url_for('remove_student_photo', student_id=student.id) }}" style="margin-top:0.5rem;"
+          onsubmit="return confirm('Remove this student\'s passport photo?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-small" style="background:#b3261e;" type="submit">Remove Photo</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if enrollment_history %}
+<div class="card">
+    <h3>Academic History</h3>
+    <table>
+        <tr><th>Session</th><th>Class / Arm</th></tr>
+        {% for e in enrollment_history %}
+        <tr><td>{{ e.session_name }}</td><td>{{ e.class_name }}</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Student Login</h3>
+    <p style="font-size:0.9rem; color:#666;">
+        Give this student their own login so they can view their published results
+        online. They can only ever see their own results, and only once a term has
+        been published (Setup → Terms).
+    </p>
+    <form method="POST" action="{{ url_for('set_student_login', student_id=student.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Username</label>
+        <input type="text" name="username" value="{{ student.username or '' }}" required>
+        <label>Password {% if student.username %}(leave blank to keep the current one){% endif %}</label>
+        <input type="password" name="password" {% if not student.username %}required{% endif %} minlength="6">
+        <button class="btn" type="submit">{% if student.username %}Update{% else %}Create{% endif %} Student Login</button>
+    </form>
+    {% if student.username %}
+    <form method="POST" action="{{ url_for('remove_student_login', student_id=student.id) }}" style="margin-top:0.75rem;"
+          onsubmit="return confirm('Remove this student\'s login? They will no longer be able to sign in.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-small" style="background:#b3261e;" type="submit">Remove Login</button>
+    </form>
+    {% endif %}
+</div>
+{% if custom_profile %}<div class="card" style="max-width:640px"><h3>Additional information</h3>{% for f in custom_profile %}<p><span class="muted">{{ f.label }}</span><br><b>{{ f.value }}</b></p>{% endfor %}</div>{% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}My Profile{% endblock %}{% block content %}
+<h1>My Profile</h1>
+<div class="card" style="max-width:520px">
+  <p><b>{{ me.name }}</b><br><small>@{{ me.username }}{% if me.email %} · {{ me.email }}{% endif %}{% if me.phone %} · {{ me.phone }}{% endif %}</small></p>
+  {% if me.photo_filename %}<img src="{{ url_for('parent_photo', parent_id=me.id) }}" alt="My passport" style="width:110px;height:136px;object-fit:cover;border-radius:6px;margin:.5rem 0">{% endif %}
+  <form method="POST" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Passport photograph (PNG, JPG or GIF, up to 500 KB)<input type="file" name="photo" accept="image/png,image/jpeg,image/gif" data-max-bytes="512000" data-size-message="Passport image must not exceed 500 KB."></label>
+    <button class="btn" type="submit">{{ 'Replace' if me.photo_filename else 'Upload' }} photo</button>
+  </form>
+</div>{% endblock %}

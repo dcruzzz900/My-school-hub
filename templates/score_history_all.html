@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Score Change History{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">AUDIT</div><h1>Score Change History</h1><p>Every score change in your school, newest first. This log is append-only.</p></div></div>
+<form method="GET" class="card no-print"><div class="form-grid">
+<label>Term<select name="term_id"><option value="">All terms</option>{% for t in all_terms %}<option value="{{ t.id }}" {{ 'selected' if f.term_id == t.id }}>{{ t.session_name }} — {{ t.name }}</option>{% endfor %}</select></label>
+<label>Class<select name="class_id"><option value="">All classes</option>{% for c in classes %}<option value="{{ c.id }}" {{ 'selected' if f.class_id == c.id }}>{{ c.name }}</option>{% endfor %}</select></label>
+<label>Subject<select name="subject_id"><option value="">All subjects</option>{% for s in subjects %}<option value="{{ s.id }}" {{ 'selected' if f.subject_id == s.id }}>{{ s.name }}</option>{% endfor %}</select></label>
+<label>Student / Admission No.<input name="q" value="{{ f.q }}" maxlength="60"></label></div><button class="btn">Filter</button></form>
+<div class="card">{% if history %}{% include "_score_audit_table.html" %}{% if truncated %}<p class="muted">Showing the latest 500 changes. Narrow the filters to see more.</p>{% endif %}{% else %}<p class="muted">No score changes match.</p>{% endif %}</div>
+{% endblock %}

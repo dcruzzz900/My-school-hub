@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}Result Display Settings{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SCHOOL SETUP</div><h1>Result Display Settings</h1><p>Every switch that controls what appears on a result sheet lives here. They apply to the on-screen preview, the printed result and the PDF. Positions are always calculated, so you can switch them on later.</p></div></div>
+{% if errors %}<div class="card" style="border:1px solid #b3261e"><b>Nothing was saved.</b> {{ errors._form or 'Please correct the highlighted items.' }}</div>{% endif %}
+<form method="POST" class="card" style="max-width:820px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<h3>Result sheet style</h3>{% if errors.result_template %}<div style="color:#b3261e">{{ errors.result_template }}</div>{% endif %}
+{% for key, name, desc in templates %}<label style="display:block;border:1px solid #ddd;border-radius:8px;padding:8px;margin:6px 0"><input type="radio" name="result_template" value="{{ key }}" {{ 'checked' if (s.result_template or 'classic') == key }}> <b>{{ name }}</b> — <span class="muted">{{ desc }}</span></label>{% endfor %}
+{% for group, items in groups %}<h3 style="margin-top:1.2rem">{{ group }}</h3>
+{% for it in items %}<label style="display:flex;align-items:flex-start;gap:.5rem;font-weight:normal;margin:.35rem 0"><input type="checkbox" name="d_{{ it.key }}" value="1" style="width:auto;margin-top:.2rem" {{ 'checked' if checked[it.key] }}><span>{{ it.label }}{% if it.help %}<br><small class="muted">{{ it.help }}</small>{% endif %}</span></label>{% endfor %}{% endfor %}
+<h3 style="margin-top:1.2rem">Look &amp; wording</h3>
+<label>Result title<input name="result_title" maxlength="80" value="{{ s.result_title or '' }}" placeholder="Terminal Report Sheet"></label>
+{% if errors.result_title %}<div style="color:#b3261e">{{ errors.result_title }}</div>{% endif %}
+<div class="form-grid"><label>Main colour<input type="color" name="result_accent_color" value="{{ s.result_accent_color or '#1f3a5f' }}"></label><label>Second colour<input type="color" name="result_secondary_color" value="{{ s.result_secondary_color or '#c9a227' }}"></label></div>
+{% if errors.result_accent_color or errors.result_secondary_color %}<div style="color:#b3261e">{{ errors.result_accent_color or errors.result_secondary_color }}</div>{% endif %}
+<div class="form-grid"><label>Logo alignment <small class="muted">(moves only the logo)</small><select name="logo_align">{% for v,l in [('left','Left'),('center','Center'),('right','Right')] %}<option value="{{ v }}" {{ 'selected' if (s.logo_align or 'left') == v }}>{{ l }}</option>{% endfor %}</select></label>
+<label>School text alignment <small class="muted">(name, address, title — moves only the text)</small><select name="name_align">{% for v,l in [('left','Left'),('center','Center'),('right','Right')] %}<option value="{{ v }}" {{ 'selected' if (s.name_align or 'center') == v }}>{{ l }}</option>{% endfor %}</select></label></div>{% if errors.logo_align %}<div style="color:#b3261e">{{ errors.logo_align }}</div>{% endif %}
+<label>Signature placement<select name="result_signature_layout">{% for v,l in [('split','Teacher left, Principal right'),('stacked','Stacked'),('right','Right-aligned')] %}<option value="{{ v }}" {{ 'selected' if s.result_signature_layout == v }}>{{ l }}</option>{% endfor %}</select></label>
+<label>School address / contact line<textarea name="school_address" rows="2" maxlength="200">{{ s.school_address or '' }}</textarea></label>
+<label>Footer text <small class="muted">(only the text you type here appears; no issue date is ever added automatically)</small><textarea name="result_footer_text" rows="2" maxlength="300">{{ s.result_footer_text or '' }}</textarea></label>
+<label>Watermark text<input name="result_watermark_text" maxlength="40" value="{{ s.result_watermark_text or '' }}"></label>
+<br><button class="btn">Save settings</button> <a class="btn btn-secondary" href="{{ url_for('result_design_preview') }}">Preview the real result sheet</a></form>
+{% endblock %}

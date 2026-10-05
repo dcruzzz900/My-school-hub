@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}{{ student_full_name(s) }}{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">REGISTRAR / ADMISSIONS</div><h1>{{ student_full_name(s) }}</h1><p>Admission No. <b>{{ s.admission_no }}</b> · Register No. <b>{{ s.register_no or '—' }}</b> · {{ s.class_name }} · <b>{{ s.status or 'Active' }}</b>{% if s.admission_date %} · admitted {{ s.admission_date|dmy }}{% endif %}{% if s.previous_school %} · from {{ s.previous_school }}{% endif %}</p></div></div>
+{% if s.status == 'Transferred' and s.transfer_destination %}<div class="card notice-ok">Transferred to <b>{{ s.transfer_destination }}</b> on {{ s.transfer_date|dmy }}. Their results and history stay on record.</div>{% endif %}
+<form method="POST" action="{{ url_for('registrar_set_status', student_id=s.id) }}" class="card" style="max-width:760px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<h3>Change status / process a transfer</h3><div class="form-grid"><label>New status<select name="status">{% for st in statuses %}<option {{ 'selected' if st == (s.status or 'Active') }}>{{ st }}</option>{% endfor %}</select></label>
+<label>Effective date<input type="date" name="effective_date" max="{{ today }}" value="{{ today }}"></label>
+<label>Destination school <small class="muted">(required for Transferred)</small><input name="destination_school" maxlength="120"></label><label>Reason<input name="reason" maxlength="300"></label></div>
+<button class="btn">Save</button></form>
+<div class="card"><h3>History</h3><div class="table-wrap"><table><tr><th>Date</th><th>Change</th><th>Details</th><th>By</th></tr>
+{% for h in history %}<tr><td>{{ h.effective_date or '' }}</td><td>{{ h.old_status or '—' }} → <b>{{ h.new_status }}</b></td><td>{{ h.destination_school or h.previous_school or h.reason or '' }}</td><td>{{ h.actor_name }} <small class="muted">({{ h.actor_role }})</small></td></tr>{% endfor %}</table></div></div>
+<p><a href="{{ url_for('registrar_students') }}">← All students</a></p>{% endblock %}

@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>{{ title }} — {{ class_row.name }}</title>
+<style>
+:root{--rs-accent:{{ th.accent }};--rs-second:{{ th.secondary }}}
+@page{size:A4 landscape;margin:8mm}
+*{box-sizing:border-box}body{margin:0;background:#eef1f5;color:#111;font-family:{{ th.font_css|safe }}}
+.bs-toolbar{display:flex;gap:8px;justify-content:center;padding:10px}.bs-toolbar button,.bs-toolbar a{padding:8px 16px;border:0;border-radius:6px;background:var(--rs-accent);color:#fff;font:inherit;text-decoration:none;cursor:pointer}
+.bs-page{background:#fff;width:281mm;margin:0 auto 16px;padding:6mm;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.bs-head{margin-bottom:4mm;border-bottom:2px solid var(--rs-accent);padding-bottom:3mm}.bs-logo-row{display:flex;margin-bottom:2mm}.bs-logo-left{justify-content:flex-start}.bs-logo-center{justify-content:center}.bs-logo-right{justify-content:flex-end}.bs-head img{height:18mm;width:auto;max-width:40mm;object-fit:contain}.bs-text-left{text-align:left}.bs-text-center{text-align:center}.bs-text-right{text-align:right}
+.bs-head h2{margin:0;font-size:15pt;color:var(--rs-accent);text-transform:uppercase}.bs-head h1{margin:1mm 0;font-size:12pt;letter-spacing:.06em;text-transform:uppercase}.bs-head p{margin:0;font-size:9pt;color:#444}
+table{width:100%;border-collapse:collapse;font-size:8pt}th,td{border:1px solid #777;padding:1.2mm 1.5mm;text-align:center}th{background:var(--rs-accent);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+td.l,th.l{text-align:left}thead{display:table-header-group}tr{page-break-inside:avoid}tbody tr:nth-child(even){background:#f3f5f8;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bs-note{font-size:7.5pt;color:#555;margin-top:2mm}
+@media print{body{background:#fff}.bs-toolbar{display:none!important}.bs-page{width:auto;margin:0;padding:0;box-shadow:none}}
+</style></head><body>
+<div class="bs-toolbar"><button type="button" onclick="window.print()">Print</button><a href="{{ back_url }}">Back</a></div>
+<div class="bs-page">
+<div class="bs-head">{% if logo %}<div class="bs-logo-row bs-logo-{{ th.logo_align }}"><img src="{{ logo }}" alt="School logo"></div>{% endif %}<div class="bs-text-{{ th.text_align }}"><h2>{{ school_name }}</h2><h1>{{ title }}</h1><p>{{ class_row.name }}{% if class_row.category %} ({{ class_row.category }}){% endif %} — {{ subtitle }}</p></div></div>
+<table><thead><tr><th>S/N</th><th class="l">Student</th>{% for subj in subjects %}<th>{{ subj.name }}</th>{% endfor %}{% if kind == 'term' %}<th>Total</th>{% endif %}<th>Average</th><th>Position</th></tr></thead>
+<tbody>{% for r in rows %}<tr><td>{{ loop.index }}</td><td class="l">{{ student_full_name(r.student) }}</td>
+{% for subj in subjects %}{% if kind == 'term' %}<td>{{ r.scores[subj.id].total }}{% if r.scores[subj.id].grade != '-' %} ({{ r.scores[subj.id].grade }}){% endif %}</td>{% else %}<td>{{ r.subjects[subj.id].average }}{% if r.subjects[subj.id].grade != '-' %} ({{ r.subjects[subj.id].grade }}){% endif %}</td>{% endif %}{% endfor %}
+{% if kind == 'term' %}<td>{{ r.total }}</td>{% endif %}<td>{{ r.average }}</td><td>{{ r.position }}</td></tr>{% endfor %}</tbody></table>
+{% if kind != 'term' %}<p class="bs-note">Cumulative Average is the mean of each subject's totals across every term this session that has a score recorded for it.</p>{% endif %}
+</div>
+{% if autoprint %}<script>if(document.readyState==='complete'){setTimeout(function(){window.print();},300);}else{window.onload=function(){setTimeout(function(){window.print();},300);};}</script>{% endif %}
+</body></html>

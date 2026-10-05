@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}{{ child.first_name }} {{ child.last_name }} — {{ term.name }}{% endblock %}{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result-sheet.css') }}">
+<div class="page-head no-print"><div><span class="eyebrow">Published Result</span><h1>{{ child.first_name }} {{ child.last_name }}</h1><p>{{ term.name }} · {{ term.session_name }}</p></div>
+<div><a class="btn" href="{{ url_for('parent_result_pdf',student_id=child.id,term_id=term.id) }}">Download PDF</a> <a class="btn btn-gold" href="{{ url_for('parent_result_print',student_id=child.id,term_id=term.id,auto=1) }}" target="_blank" rel="noopener">Print</a></div></div>
+<div class="rs-screen-wrap">{% include "_result_sheet.html" %}</div>
+{% endblock %}

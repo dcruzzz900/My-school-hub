@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Generate Timetable{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">AUTOMATED GENERATION</div><h1>Generate Timetable</h1><p>Generation creates a new draft/version and never overwrites a published timetable.</p></div></div>
+<div class="grid-4"><div class="card"><b>Requirements</b><h2>{{ req_count }}</h2></div><div class="card"><b>Schedule slots</b><h2>{{ slot_count }}</h2></div><div class="card"><b>Teacher assignments</b><h2>{{ teacher_count }}</h2></div><div class="card"><b>Rooms</b><h2>{{ room_count }}</h2></div></div>
+<div class="card"><h3>Setup readiness</h3><p>{% if ready %}✓ Ready to generate. The generator will enforce teacher/class/room/availability and requirement constraints.{% else %}Generation is blocked until schedule slots, subject requirements and teacher assignments are configured.{% endif %}</p><a href="{{ url_for('timetable_setup') }}" class="btn btn-small">Open Setup</a></div>
+<form method="POST" class="card"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" {% if not ready %}disabled{% endif %}>Generate New Draft Timetable</button></form>
+{% endblock %}

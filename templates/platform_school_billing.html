@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Billing — {{ school.name }}{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>{{ school.name }}</h1><p><code>{{ school.school_code }}</code> · Billing & renewal</p></div></div>
+<div class="card"><p><strong>Current status:</strong> {{ state.label }} · <strong>Plan:</strong> {{ school.subscription_plan or 'legacy' }} · <strong>Reference:</strong> {{ school.subscription_reference or '—' }}</p></div>
+<div class="card"><h2>Create invoice</h2><form method="post" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>Plan<select name="plan">{% for p in plans %}<option value="{{ p.code }}">{{ p.name }} — ₦{{ '%.2f'|format(p.price_ngn) }} / {{ p.billing_days }} days</option>{% endfor %}</select></label>
+<label>Billing days<input type="number" name="days" min="1" max="3650" value="365"></label>
+<button class="btn" name="action" value="create_invoice">Create invoice</button></form></div>
+<div class="card"><h2>Record payment</h2><p>Recording only stores the payment reference. It does not activate the school.</p><form method="post" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label>Invoice<select name="invoice_id">{% for i in invoices if i.status == 'pending' %}<option value="{{ i.id }}">{{ i.invoice_number }} — ₦{{ '%.2f'|format(i.amount_ngn) }}</option>{% endfor %}</select></label>
+<label>Provider<select name="provider"><option value="manual">Manual</option><option value="paystack">Paystack</option><option value="flutterwave">Flutterwave</option><option value="bank_transfer">Bank transfer</option></select></label>
+<label>Payment reference<input name="payment_reference" maxlength="100" required></label>
+<label>Amount (₦)<input type="number" name="amount_ngn" min="0" step="0.01"></label>
+<button class="btn" name="action" value="record_payment">Record pending payment</button></form></div>
+<div class="card"><h2>Confirm payment</h2><p><strong>Only confirm after independently verifying the payment.</strong> Confirmation activates the invoice's plan for its configured billing period and records the reference on the school.</p>
+{% for p in payments if p.status == 'pending' %}<form method="post" style="display:inline-block;margin:6px 8px 6px 0"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="payment_id" value="{{ p.id }}"><button class="btn" name="action" value="confirm_payment">Confirm {{ p.payment_reference }} — ₦{{ '%.2f'|format(p.amount_ngn) }}</button></form>{% else %}<p>No pending payments.</p>{% endfor %}</div>
+<div class="card"><h2>Invoice history</h2><div style="overflow-x:auto"><table><tr><th>Invoice</th><th>Plan</th><th>Amount</th><th>Status</th><th>Issued</th><th>Paid</th><th>Reference</th></tr>{% for i in invoices %}<tr><td><code>{{ i.invoice_number }}</code></td><td>{{ i.plan_code }}</td><td>₦{{ '%.2f'|format(i.amount_ngn) }}</td><td>{{ i.status }}</td><td>{{ i.issued_at }}</td><td>{{ i.paid_at or '—' }}</td><td>{{ i.payment_reference or '—' }}</td></tr>{% else %}<tr><td colspan="7">No invoices.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Payment history</h2><div style="overflow-x:auto"><table><tr><th>Reference</th><th>Provider</th><th>Amount</th><th>Status</th><th>Paid</th><th>Confirmed</th></tr>{% for p in payments %}<tr><td><code>{{ p.payment_reference }}</code></td><td>{{ p.provider }}</td><td>₦{{ '%.2f'|format(p.amount_ngn) }}</td><td>{{ p.status }}</td><td>{{ p.paid_at or '—' }}</td><td>{{ p.confirmed_at or '—' }}</td></tr>{% else %}<tr><td colspan="6">No payments.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><a class="btn btn-small" href="{{ url_for('platform_billing') }}">← Billing dashboard</a> <a class="btn btn-small" href="{{ url_for('platform_school_subscription', school_id=school.id) }}">Subscription management</a></div>
+{% endblock %}

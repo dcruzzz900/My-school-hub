@@ -1,0 +1,48 @@
+{# Dedicated printable result component. Used by the staff, student and parent result pages and by the print page.
+   Every on/off decision comes from rs.d (School Setup -> Result Display Settings); the PDF reads the same values. #}
+{% set t = rs.template %}{% set d = rs.d %}{% set att = attendance or {} %}
+<article class="rs-sheet rs-{{ t }}" style="--rs-accent:{{ rs.accent }};--rs-second:{{ rs.secondary }}" data-template="{{ t }}">
+{% if rs.watermark %}<div class="rs-watermark" aria-hidden="true">{{ rs.watermark }}</div>{% endif %}
+<header class="rs-head" data-logo-align="{{ rs.logo_align }}" data-text-align="{{ rs.text_align }}">
+  {% if rs.logo %}<div class="rs-logo-row rs-logo-{{ rs.logo_align }}"><img class="rs-logo" src="{{ rs.logo }}" alt="School logo"></div>{% endif %}
+  <div class="rs-head-text rs-text-{{ rs.text_align }}"><h2>{{ rs.school_name }}</h2>{% if rs.tagline %}<p class="rs-tag">{{ rs.tagline }}</p>{% endif %}{% if d.contact and rs.contact %}<p class="rs-contact">{{ rs.contact }}</p>{% endif %}
+    {% for f in rs.info_fields %}<p class="rs-contact"><b>{{ f.label }}:</b> {{ f.value }}</p>{% endfor %}
+    <h1>{{ rs.title }}</h1>{% if d.session or d.term %}<p class="rs-term">{% if d.session %}{{ term.session_name }}{% endif %}{% if d.session and d.term %} — {% endif %}{% if d.term %}{{ term.name }}{% endif %}</p>{% endif %}{% if result_date %}<p class="rs-term rs-date">Date: {{ result_date }}</p>{% endif %}</div>
+</header>
+<div class="rs-idwrap{% if d.passport %} rs-has-passport{% endif %}">
+<section class="rs-id">
+  <div><span>Name</span><b>{{ student_full_name(student) }}</b></div>
+  {% if d.admission_no %}<div><span>Admission / Register No.</span><b>{{ student.admission_no }}</b></div>{% endif %}
+  {% if d.class %}<div><span>Class / Arm</span><b>{{ class_row.name }}</b></div>{% endif %}
+  {% if d.session or d.term %}<div><span>{% if d.session and d.term %}Session · Term{% elif d.session %}Session{% else %}Term{% endif %}</span><b>{% if d.session %}{{ term.session_name }}{% endif %}{% if d.session and d.term %} · {% endif %}{% if d.term %}{{ term.name }}{% endif %}</b></div>{% endif %}
+  {% if d.score %}<div><span>Total Score</span><b>{{ total }}</b></div><div><span>Average</span><b>{{ average }}</b></div>{% endif %}
+  <div><span>Subjects</span><b>{{ subjects_written }} of {{ subjects|length }}</b></div>
+  {% if d.overall_position %}<div class="rs-pos"><span>Overall Position</span><b>{{ position_text }}{% if class_size %} <small>of {{ class_size }}</small>{% endif %}</b></div>{% endif %}
+  {% for f in custom_fields %}<div><span>{{ f.label }}</span><b>{{ f.value }}</b></div>{% endfor %}
+</section>
+{% if d.passport %}<div class="rs-passport{% if not rs.passport %} rs-passport-blank{% endif %}">{% if rs.passport %}<img src="{{ rs.passport }}" alt="Student passport photograph">{% endif %}</div>{% endif %}
+</div>
+<section>
+  <h3 class="rs-h">Academic Performance</h3>
+  <table class="rs-table"><thead><tr><th class="l">Subject</th>{% if d.score %}<th>CA1</th><th>CA2</th>{% if show_ca3 %}<th>CA3</th>{% endif %}<th>Exam</th><th>Total</th>{% endif %}{% if d.grade %}<th>Grade</th>{% endif %}{% if d.subject_position %}<th>Position</th>{% endif %}{% if d.remarks and t != 'compact' %}<th class="l">Remark</th>{% endif %}</tr></thead>
+  <tbody>{% for s in subjects %}<tr><td class="l"><b>{{ s.name }}</b></td>{% if d.score %}<td>{{ s.ca1 }}</td><td>{{ s.ca2 }}</td>{% if show_ca3 %}<td>{{ s.ca3 }}</td>{% endif %}<td>{{ s.exam }}</td><td><b>{{ s.total }}</b></td>{% endif %}{% if d.grade %}<td>{{ s.grade }}</td>{% endif %}{% if d.subject_position %}<td>{{ s.position_text }}</td>{% endif %}{% if d.remarks and t != 'compact' %}<td class="l">{{ s.remark }}</td>{% endif %}</tr>{% endfor %}</tbody></table>
+</section>
+{% if domain_groups %}<section class="rs-domains"><h3 class="rs-h">Educational Domains <small>(rated 1–5)</small></h3>
+  <div class="rs-domain-grid">{% for g in domain_groups %}<table class="rs-table rs-mini"><thead><tr><th class="l" colspan="2">{{ g.label }}</th></tr></thead><tbody>{% for name, rating in g['items'] %}<tr><td class="l">{{ name }}</td><td>{{ rating }}</td></tr>{% endfor %}</tbody></table>{% endfor %}</div></section>{% endif %}
+{% set show_att = d.attendance and (d.days_opened or d.days_present or d.days_absent) %}
+{% if show_att or (d.promotion and promotion_status) %}<section class="rs-att">
+  {% if show_att and d.days_opened %}<div><span>Days School Opened</span><b>{{ att.opened if att.opened is not none else '—' }}</b></div>{% endif %}
+  {% if show_att and d.days_present %}<div><span>Days Present</span><b>{{ att.present if att.present is not none else '—' }}</b></div>{% endif %}
+  {% if show_att and d.days_absent %}<div><span>Days Absent</span><b>{{ att.absent if att.absent is not none else '—' }}</b></div>{% endif %}
+  {% if d.promotion and promotion_status %}<div><span>Promotion / Status</span><b>{{ promotion_status }}</b></div>{% endif %}</section>{% endif %}
+{% if d.teacher_comment or d.principal_comment %}<section class="rs-comments{% if not (d.teacher_comment and d.principal_comment) %} rs-comments-one{% endif %}">
+  {% if d.teacher_comment %}<div><span>Class/Form Teacher's Comment</span><p>{{ info.teacher_comment if info and info.teacher_comment else 'No comment recorded.' }}</p></div>{% endif %}
+  {% if d.principal_comment %}<div><span>Principal's Comment</span><p>{{ info.principal_comment if info and info.principal_comment else 'No comment recorded.' }}</p></div>{% endif %}</section>{% endif %}
+{% set show_t = d.teacher_signature or d.teacher_sign_date or d.teacher_name %}{% set show_p = d.principal_signature or d.principal_sign_date or d.principal_name %}
+{% if show_t or show_p %}<section class="rs-sign rs-sign-{{ rs.signature_layout }}">
+  {% if show_t %}<div>{% if d.teacher_signature %}{% if rs.teacher_sig %}<img src="{{ rs.teacher_sig }}" alt="Class teacher signature">{% else %}<i class="rs-line"></i>{% endif %}{% endif %}<span>Class/Form Teacher{% if d.teacher_name and teacher_name %}: {{ teacher_name }}{% endif %}</span>{% if d.teacher_sign_date %}<small>Date: {{ (info.teacher_signed_date|dmy) if info and info.teacher_signed_date else '____________' }}</small>{% endif %}</div>{% endif %}
+  {% if show_p %}<div>{% if d.principal_signature %}{% if rs.principal_sig %}<img src="{{ rs.principal_sig }}" alt="Principal signature">{% else %}<i class="rs-line"></i>{% endif %}{% endif %}<span>Principal{% if d.principal_name and principal_name %}: {{ principal_name }}{% endif %}</span>{% if d.principal_sign_date %}<small>Date: {{ (info.principal_signed_date|dmy) if info and info.principal_signed_date else '____________' }}</small>{% endif %}</div>{% endif %}
+</section>{% endif %}
+{% if (d.grading_key or t == 'detailed') and rs.grading_scale %}<section class="rs-key"><b>Grading key:</b> {% for g in rs.grading_scale %}<span>{{ g.grade }} = {{ '%g'|format(g.min_score) }}–{{ '%g'|format(g.max_score) }} ({{ g.remark }})</span>{% endfor %}</section>{% endif %}
+{% if rs.footer %}<footer class="rs-foot"><span>{{ rs.footer }}</span></footer>{% endif %}
+</article>

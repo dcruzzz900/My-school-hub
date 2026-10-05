@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Class Attendance{% endblock %}
+{% block content %}
+<h1>Class Attendance — {{ class_row.name }}</h1>
+<p class="muted">Attendance is recorded for <b>today only</b>. The date and time come from the school server ({{ tz_name }}), not from your device, and cannot be changed.</p>
+<div class="card">
+  <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem">
+    <div class="server-date" aria-live="polite"><span class="muted">Server date &amp; time</span><br><b>{{ clock }}</b></div>
+    <a class="btn btn-small" style="margin-left:auto" href="{{ url_for('roll_call_history', class_id=class_row.id) }}">View Attendance History</a>
+  </div>
+  {% if not students %}
+  <p class="muted">No active students in this class yet.</p>
+  {% else %}
+  {% if recorded_info %}<p class="notice-ok">Today's attendance has been recorded{% if recorded_info.role %} by {{ recorded_info.role }}{% endif %}. Changing it is a <b>correction</b>: the original record and time are kept, and your reason is logged.</p>{% endif %}
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="date" value="{{ date_str }}">
+    <div class="table-wrap"><table>
+      <tr><th>Admission No.</th><th>Student</th>{% for t in types %}<th>{{ labels[t] }}</th>{% endfor %}</tr>
+      {% for s in students %}{% set current = existing.get(s.id, 'present') %}
+      <tr><td>{{ s.admission_no }}</td><td>{{ student_full_name(s) }}</td>
+        {% for t in types %}<td><input type="radio" name="status_{{ s.id }}" value="{{ t }}" aria-label="{{ labels[t] }}" {% if current == t %}checked{% endif %}></td>{% endfor %}</tr>
+      {% endfor %}
+    </table></div>
+    {% if recorded_info %}<label style="margin-top:.8rem">Reason for correction (needed only if you change something)<input name="correction_reason" maxlength="300" placeholder="e.g. marked absent by mistake"></label>{% endif %}
+    <button class="btn" type="submit" style="margin-top:1rem">{% if recorded_info %}Submit correction{% else %}Save attendance for {{ date_str|dmy }}{% endif %}</button>
+  </form>
+  <p class="muted" style="margin-top:.6rem">Late counts as present. Excused counts as an authorised absence.</p>
+  {% endif %}
+</div>
+{% endblock %}

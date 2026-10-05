@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="max-width:820px;margin:2rem auto;">
+  <h1>Welcome to your school account</h1>
+  <p>Your School Admin account is active. Before you begin, verify the school identity below and continue to the guided setup.</p>
+  <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0;">
+    <div class="card"><strong>School</strong><br>{{ school.name }}</div>
+    <div class="card"><strong>School ID</strong><br>{{ school.school_code or 'Not assigned' }}</div>
+    <div class="card"><strong>Tenant ID</strong><br>{{ school.tenant_id or 'Not assigned' }}</div>
+    <div class="card"><strong>Account</strong><br>{{ user.username }}</div>
+  </div>
+  <div class="card">
+    <h2>What happens next?</h2>
+    <ol>
+      <li>Confirm your school profile and branding.</li>
+      <li>Configure Nursery, Primary and/or Secondary levels.</li>
+      <li>Create academic sessions, terms, classes and arms.</li>
+      <li>Add subjects, teachers and students.</li>
+      <li>Review roles, scopes, grading and result settings.</li>
+      <li>Complete the setup verification before entering live records.</li>
+    </ol>
+  </div>
+  <form method="post" style="margin-top:1rem;"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-primary">Continue to School Setup</button>
+  </form>
+</div>
+{% endblock %}

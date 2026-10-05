@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Class Login Codes{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">STUDENT ACCESS</div><h1>Class Login Codes</h1>
+<p>Students enter their class's code on their <b>first</b> login only. Share it with the class; it never reveals a password.</p></div></div>
+{% if not rows %}<div class="card"><p class="muted">You are not assigned as Form/Class Teacher of any class.</p></div>{% endif %}
+{% for r in rows %}<div class="card" style="margin-bottom:12px">
+<h3>{{ r.cls.name }} <small class="muted">· {{ r.total }} student{{ '' if r.total == 1 else 's' }} · {{ r.pending }} yet to log in for the first time</small></h3>
+{% if r.active %}
+<p style="font-size:2rem;letter-spacing:.25em;font-weight:700;font-family:monospace" aria-label="Class login code">{{ r.display }}</p>
+<p class="muted">Created {{ r.active.created_at }} by {{ r.active.created_by_name or '—' }}{% if r.active.expires_at %} · expires {{ r.active.expires_at }}{% endif %} · used {{ r.active.use_count }} time{{ '' if r.active.use_count == 1 else 's' }}</p>
+<form method="POST" action="{{ url_for('class_code_rotate', class_id=r.cls.id) }}" style="display:inline" onsubmit="return confirm('Generate a new code? The current code stops working immediately.');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label style="display:inline">Valid for <select name="valid_days"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select></label>
+<button class="btn btn-small">Regenerate</button></form>
+<form method="POST" action="{{ url_for('class_code_revoke', class_id=r.cls.id) }}" style="display:inline" onsubmit="return confirm('Revoke this code? Students will not be able to use it.');">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small" style="background:#b3261e">Revoke</button></form>
+{% else %}
+<p class="muted">No active code. Students cannot complete a first login until you generate one.</p>
+<form method="POST" action="{{ url_for('class_code_generate', class_id=r.cls.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label style="display:inline">Valid for <select name="valid_days"><option value="7">7 days</option><option value="14">14 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select></label>
+<button class="btn">Generate Class Login Code</button></form>{% endif %}</div>{% endfor %}
+{% if history %}<div class="card"><h3>Code history</h3><div class="table-wrap"><table><thead><tr><th>Class</th><th>Code</th><th>Status</th><th>Created</th><th>Ended</th><th>Uses</th></tr></thead><tbody>
+{% for h in history %}<tr><td>{{ h.class_name }}</td><td><code>••••{{ h.code[-3:] }}</code></td><td>{{ h.status|title }}</td><td>{{ h.created_at }} · {{ h.created_by_name or '' }}</td><td>{{ h.ended_at or '—' }}{% if h.ended_by_name %} · {{ h.ended_by_name }}{% endif %}</td><td>{{ h.use_count }}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}
+{% endblock %}

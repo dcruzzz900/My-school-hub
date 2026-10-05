@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}Additional School Information{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SCHOOL SETUP</div><h1>Additional School Information</h1><p>Record details that are not part of the standard school profile — for example an Education Domain, an exam centre number or a motto in another language. Add, rename, edit or remove fields whenever you need.</p></div></div>
+<div class="card" style="max-width:760px"><h3>Add a field</h3>
+<form method="POST" class="form-grid"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="add">
+<label>Field name<input name="label" maxlength="60" required placeholder="e.g. Education Domain"></label>
+<label>Value<input name="value" maxlength="300" placeholder="e.g. Basic Education"></label>
+<label class="role-check"><input type="checkbox" name="show_on_result" value="1"> Show on the result sheet header</label><div><button class="btn">Add field</button></div></form></div>
+<div class="card" style="max-width:760px"><h3>Your fields</h3>
+{% if not fields %}<p class="muted">No additional fields yet.</p>{% endif %}
+{% for f in fields %}<form method="POST" class="form-grid" style="border-bottom:1px solid #eee;padding:.5rem 0"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="field_id" value="{{ f.id }}">
+<label>Name<input name="label" maxlength="60" value="{{ f.label }}"></label><label>Value<input name="value" maxlength="300" value="{{ f.value or '' }}"></label>
+<label class="role-check"><input type="checkbox" name="show_on_result" value="1" {{ 'checked' if f.show_on_result }}> Show on result sheet</label><div><button class="btn" name="action" value="save">Save</button> <button class="btn btn-secondary" name="action" value="delete" onclick="return confirm('Remove this field?')">Remove</button></div></form>{% endfor %}
+</div>{% endblock %}

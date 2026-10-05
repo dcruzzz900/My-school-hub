@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Staff Attendance{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">STAFF</div><h1>Staff Attendance</h1><p>Attendance is saved directly to the school server.</p></div><a class="btn btn-secondary" href="{{ url_for('staff_attendance_history') }}">History & Reports</a></div>
+
+<div class="card attendance-self-actions">
+  <div class="section-title"><div><h3>My Attendance</h3><p class="muted">Record your own check-in and check-out without creating duplicate daily records.</p></div><span id="staffAttendanceStatus" class="badge"></span></div>
+  <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn" onclick="staffAttendanceAction('/staff-attendance/check-in')">Check In</button><button type="button" class="btn btn-secondary" onclick="staffAttendanceAction('/staff-attendance/check-out')">Check Out</button></div>
+</div>
+
+<div class="card">
+  <div class="server-date" aria-live="polite"><span class="muted">Server date &amp; time ({{ tz_name }})</span><br><b>{{ clock }}</b></div>
+  <p class="muted" style="margin:.4rem 0 .8rem">Staff attendance is recorded for today only. The date and time come from the school server and cannot be changed.</p>
+  <form method="GET" class="form-grid" style="align-items:end">
+    <label>Search staff<input type="search" name="q" value="{{ search or '' }}" placeholder="Name, username or role"></label>
+    <label>Status<select name="status"><option value="">All statuses</option>{% for st in statuses %}<option value="{{ st }}" {% if filter_status==st %}selected{% endif %}>{{ st }}</option>{% endfor %}</select></label>
+    <button class="btn">Apply filters</button>
+  </form>
+</div>
+
+<div class="card" style="overflow-x:auto">
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="date" value="{{ date_str }}"><input type="hidden" name="q" value="{{ search or '' }}"><input type="hidden" name="filter_status" value="{{ filter_status or '' }}">
+    {% if staff %}
+    <table class="responsive-table"><caption>Staff Attendance</caption><thead><tr><th>Staff</th><th>Role</th><th>Status</th><th>Check-in</th><th>Check-out</th><th>Recorded</th></tr></thead><tbody>
+    {% for m in staff %}{% set row=existing.get(m.id) %}{% set current=row.status if row else 'Present' %}
+    <tr><td data-label="Staff"><strong>{{ m.name }}</strong><br><small>{{ m.username }}</small></td>
+      <td data-label="Role">{% for r in staff_role_map.get(m.id, []) %}<span class="role-chip">{{ r }}</span>{% else %}{{ position_labels.get(m.position, m.rbac_role or m.role.replace('_',' ')|title) }}{% endfor %}</td>
+      <td data-label="Status"><select name="status_{{ m.id }}">{% for st in statuses %}<option value="{{ st }}" {% if current==st %}selected{% endif %}>{{ st }}</option>{% endfor %}</select></td>
+      <td data-label="Check-in">{{ (row.check_in_at or '—') if row else '—' }}</td><td data-label="Check-out">{{ (row.check_out_at or '—') if row else '—' }}</td>
+      <td data-label="Recorded">{% if row %}<small>{{ row.recorded_at }} UTC{% if row.corrected_at %}<br>corrected {{ row.corrected_at }}{% endif %}</small>{% else %}—{% endif %}</td></tr>
+    {% endfor %}</tbody></table>
+    {% if any_recorded %}<p class="notice-ok">Today's attendance is already recorded. Changing a status is a <b>correction</b>: the original record and time are kept and your reason is logged.</p><label>Reason for correction (needed only if you change something)<input name="correction_reason" maxlength="300"></label>{% endif %}
+    <button class="btn" type="submit" style="margin-top:1rem">{% if any_recorded %}Submit correction{% else %}Save attendance for {{ date_str|dmy }}{% endif %}</button>
+    {% else %}<p class="muted">No staff matched the selected filters.</p>{% endif %}
+  </form>
+</div>
+<script>
+async function staffAttendanceAction(path){const el=document.getElementById('staffAttendanceStatus');el.textContent='Saving…';try{const r=await fetch(path,{method:'POST',headers:{'X-CSRF-Token':'{{ csrf_token() }}','Accept':'application/json'}});const d=await r.json();el.textContent=d.ok?(' '+d.status.replace('_',' ')+' at '+d.time):(' '+(d.error||'Unable to save attendance'));}catch(e){el.textContent='Cannot reach the server. Check your internet connection and try again. Nothing was saved.';}}
+</script>
+{% endblock %}

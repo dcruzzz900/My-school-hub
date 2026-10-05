@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block title %}My Account{% endblock %}{% block content %}
+<h1>My Account</h1>
+<div class="card" style="max-width:560px"><h3>Official details</h3><p class="muted">Your name, class, admission/register number and date of birth are set by the school and cannot be changed here. Ask your Form Teacher if something is wrong.</p>
+<p><b>Name:</b> {{ st.last_name }} {{ st.first_name }} {{ st.other_names or '' }}</p><p><b>Admission No.:</b> {{ st.admission_no }}</p></div>
+<form method="POST" class="card" style="max-width:560px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="username"><h3>Change username</h3>
+<label>Username<input type="text" name="username" value="{{ form.get('username', st.username or '') }}" maxlength="40" required></label>{% if errors.username %}<div class="pf-err" style="color:#b3261e;font-weight:600">{{ errors.username }}</div>{% endif %}
+<small class="muted">Changing your username does not change your Admission/Register No. You can sign in with either.</small><br><button class="btn">Save username</button></form>
+<form method="POST" class="card" style="max-width:560px"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="password"><h3>Change password</h3>
+<label>Current password<input type="password" name="current_password" autocomplete="current-password" required></label>{% if errors.current_password %}<div style="color:#b3261e;font-weight:600">{{ errors.current_password }}</div>{% endif %}
+<label>New password<input type="password" name="new_password" autocomplete="new-password" required></label>{% if errors.new_password %}<div style="color:#b3261e;font-weight:600">{{ errors.new_password }}</div>{% endif %}
+<label>Confirm new password<input type="password" name="confirm_password" autocomplete="new-password" required></label>{% if errors.confirm_password %}<div style="color:#b3261e;font-weight:600">{{ errors.confirm_password }}</div>{% endif %}
+<small class="muted">At least 8 characters with upper and lower case, a number and a symbol.</small><br><button class="btn">Change password</button></form>
+{% endblock %}

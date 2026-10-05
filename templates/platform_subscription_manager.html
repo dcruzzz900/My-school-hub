@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Subscriptions{% endblock %}{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SUPER ADMIN</div><h1>Subscriptions</h1><p>Activate, extend or suspend each school's subscription. Every change is recorded in its history.</p></div></div>
+<div class="stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px">{% for k in ['Active','Trial','Expired','Suspended'] %}<div class="card"><div class="muted">{{ k }}</div><div style="font-size:1.8rem;font-weight:700">{{ counts[k] }}</div></div>{% endfor %}</div>
+<div class="card" style="overflow:auto"><table><thead><tr><th>School</th><th>Plan</th><th>Status</th><th>Start</th><th>Expiry</th><th>Actions</th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b>{{ r.s.name }}</b><br><small class="muted">{{ r.s.school_code or '—' }}</small></td><td>{{ r.s.subscription_plan or '—' }}</td><td><span class="status-badge">{{ r.status }}</span></td>
+<td>{{ (r.s.subscription_started_at or r.s.trial_started_at or '—')[:10] }}</td><td>{{ (r.s.subscription_ends_at or r.s.trial_ends_at or '—')[:10] }}</td>
+<td style="min-width:260px"><form method="POST" action="{{ url_for('platform_subscription_action', school_id=r.s.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<select name="action"><option value="activate">Activate (months)</option><option value="extend">Extend (days)</option>{% if r.s.is_suspended %}<option value="unsuspend">Reinstate</option>{% else %}<option value="suspend">Suspend</option>{% endif %}<option value="expire">Deactivate / expire</option></select>
+<input type="number" name="months" min="1" max="60" placeholder="months" style="width:5rem"><input type="number" name="days" min="1" max="1825" placeholder="days" style="width:5rem"><input name="note" maxlength="200" placeholder="Note"><button class="btn btn-small">Apply</button></form>
+<a href="{{ url_for('platform_subscription_history', school_id=r.s.id) }}">History</a></td></tr>{% else %}<tr><td colspan="6" class="muted">No schools yet.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

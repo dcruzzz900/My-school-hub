@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Billing & Payments{% endblock %}
+{% block content %}
+<div class="dashboard-header"><div><h1>Billing & Payments</h1><p class="badge">Invoices, payment references, confirmations and renewal history</p> <a class="btn btn-small" href="{{ url_for('platform_billing_reports') }}">Financial Reports</a></div></div><div style="margin-top:10px"><a class="btn btn-small" href="{{ url_for('platform_billing_operations') }}">Open Billing Operations</a> <a class="btn btn-small" href="{{ url_for('platform_billing_analytics') }}">Billing Analytics</a></div></div>
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">{{ counts.get('pending',0) }}</div><div class="label">Pending invoices</div></div>
+  <div class="stat-box"><div class="num">{{ counts.get('paid',0) }}</div><div class="label">Paid invoices</div></div>
+  <div class="stat-box"><div class="num">{{ counts.get('cancelled',0) }}</div><div class="label">Cancelled</div></div>
+</div>
+<div class="card"><h2>Invoice history</h2><div style="overflow-x:auto"><table><tr><th>Invoice</th><th>School</th><th>Plan</th><th>Amount</th><th>Status</th><th>Issued</th><th>Action</th></tr>
+{% for i in invoices %}<tr><td><code>{{ i.invoice_number }}</code></td><td>{{ i.school_name }}<br><small>{{ i.school_code }}</small></td><td>{{ i.plan_code }}</td><td>₦{{ '%.2f'|format(i.amount_ngn) }}</td><td>{{ i.status }}</td><td>{{ i.issued_at }}</td><td><a class="btn btn-small" href="{{ url_for('platform_school_billing', school_id=i.school_id) }}">Manage</a></td></tr>{% else %}<tr><td colspan="7">No invoices yet.</td></tr>{% endfor %}</table></div></div>
+<div class="card"><h2>Payment records</h2><p>Recorded payments remain <strong>pending</strong> until a platform administrator explicitly confirms them. A pending payment does not activate or extend a subscription.</p><div style="overflow-x:auto"><table><tr><th>Reference</th><th>School</th><th>Invoice</th><th>Provider</th><th>Amount</th><th>Status</th><th>Confirmed</th></tr>
+{% for p in payments %}<tr><td><code>{{ p.payment_reference }}</code></td><td>{{ p.school_name }}</td><td>{{ p.invoice_number or '—' }}</td><td>{{ p.provider }}</td><td>₦{{ '%.2f'|format(p.amount_ngn) }}</td><td>{{ p.status }}</td><td>{{ p.confirmed_at or '—' }}</td></tr>{% else %}<tr><td colspan="7">No payment records yet.</td></tr>{% endfor %}</table></div></div>
+{% endblock %}

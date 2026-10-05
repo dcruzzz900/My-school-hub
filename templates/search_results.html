@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Search{% endblock %}{% block content %}
+<h1>Search results</h1>
+<form method="GET" action="{{ url_for('search_page') }}" class="card"><input type="search" name="q" value="{{ res.q }}" placeholder="Search students, staff, classes or features…" maxlength="60" style="width:100%" autofocus><button class="btn" style="margin-top:6px">Search</button></form>
+{% if short %}<div class="card"><p class="muted">Type at least 2 characters to search.</p></div>
+{% elif total == 0 %}<div class="card"><p><b>No results found</b> for “{{ res.q }}”.</p><p class="muted">Try part of a name or admission number. You only see records you are permitted to access.</p></div>
+{% else %}
+{% for title, items in [('Students', res.students), ('Staff', res.staff), ('Classes', res.classes), ('Features', res.features)] %}{% if items %}<div class="card"><h3>{{ title }}</h3><ul style="list-style:none;padding:0;margin:0">
+{% for i in items %}<li style="padding:8px 0;border-bottom:1px solid #eee"><a href="{{ i.url }}"><b>{{ i.name or i.label }}</b></a>{% if i.sub %} <span class="muted">· {{ i.sub }}</span>{% endif %}</li>{% endfor %}</ul></div>{% endif %}{% endfor %}
+{% endif %}{% endblock %}

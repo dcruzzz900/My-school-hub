@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% macro sysfield(r) %}
+<div class="pf-field{{ ' has-error' if r.error }}" id="f_{{ r.key }}">
+  <label for="in_{{ r.key }}">{{ r.label }}
+    {% if r.required %}<span class="req" title="Required">*</span> <em class="tag req-tag">Required</em>{% else %}<em class="tag">Optional</em>{% endif %}</label>
+  {% if not r.editable %}
+    <div class="ro">{% if r.kind in ('dob_student','dob_staff','admission_date') and r.value %}{{ r.value|dmy }}{% elif r.kind == 'gender' %}{{ {'M':'Male','F':'Female'}.get(r.value, r.value or '—') }}{% else %}{{ r.value or '—' }}{% endif %}</div>
+    <small class="muted">Protected — only the school administration can change this.</small>
+  {% elif r.kind == 'gender' %}
+    <select id="in_{{ r.key }}" name="{{ r.key }}"><option value="">— Select —</option>
+      <option value="M" {{ 'selected' if r.value=='M' }}>Male</option><option value="F" {{ 'selected' if r.value=='F' }}>Female</option></select>
+  {% elif r.kind in ('dob_student','dob_staff','admission_date') %}
+    <input id="in_{{ r.key }}" type="date" name="{{ r.key }}" value="{{ r.value }}" max="{{ today }}">
+  {% elif r.kind == 'email' %}
+    <input id="in_{{ r.key }}" type="email" name="{{ r.key }}" value="{{ r.value }}" maxlength="{{ r.maxlen }}" autocomplete="off">
+  {% elif r.kind == 'phone' %}
+    <input id="in_{{ r.key }}" type="tel" name="{{ r.key }}" value="{{ r.value }}" maxlength="20" inputmode="tel" placeholder="e.g. 08012345678">
+  {% elif r.kind == 'address' %}
+    <textarea id="in_{{ r.key }}" name="{{ r.key }}" rows="3" maxlength="{{ r.maxlen }}">{{ r.value }}</textarea>
+  {% else %}
+    <input id="in_{{ r.key }}" type="text" name="{{ r.key }}" value="{{ r.value }}" maxlength="{{ r.maxlen }}" {% if r.datalist %}list="dl_{{ r.datalist }}"{% endif %}>
+  {% endif %}
+  {% if r.error %}<div class="pf-err" role="alert">{{ r.error }}</div>{% endif %}
+</div>
+{% endmacro %}
+{% macro cfield(r) %}
+<div class="pf-field{{ ' has-error' if r.error }}" id="cf_{{ r.id }}">
+  <label for="in_cf_{{ r.id }}">{{ r.label }}
+    {% if r.is_required %}<span class="req">*</span> <em class="tag req-tag">Required</em>{% else %}<em class="tag">Optional</em>{% endif %}</label>
+  {% if r.description %}<small class="muted">{{ r.description }}</small>{% endif %}
+  {% set name = 'cf_' ~ r.id %}
+  {% if not r.editable %}
+    <div class="ro">{% if r.field_type == 'multiselect' %}{{ r.value|join(', ') or '—' }}{% elif r.field_type == 'file' %}{{ r.value.name if r.value else '—' }}{% else %}{{ r.value or '—' }}{% endif %}</div>
+    <small class="muted">This field is managed by the school.</small>
+  {% elif r.field_type == 'long_text' %}
+    <textarea id="in_{{ name }}" name="{{ name }}" rows="3" maxlength="2000">{{ r.value }}</textarea>
+  {% elif r.field_type == 'number' %}
+    <input id="in_{{ name }}" type="text" inputmode="decimal" name="{{ name }}" value="{{ r.value }}">
+  {% elif r.field_type == 'date' %}
+    <input id="in_{{ name }}" type="date" name="{{ name }}" value="{{ r.value }}">
+  {% elif r.field_type == 'email' %}
+    <input id="in_{{ name }}" type="email" name="{{ name }}" value="{{ r.value }}">
+  {% elif r.field_type == 'phone' %}
+    <input id="in_{{ name }}" type="tel" name="{{ name }}" value="{{ r.value }}" maxlength="20">
+  {% elif r.field_type == 'yes_no' %}
+    <select id="in_{{ name }}" name="{{ name }}"><option value="">— Select —</option><option {{ 'selected' if r.value=='Yes' }}>Yes</option><option {{ 'selected' if r.value=='No' }}>No</option></select>
+  {% elif r.field_type == 'select' %}
+    <select id="in_{{ name }}" name="{{ name }}"><option value="">— Select —</option>
+      {% for o in r.options if o.is_active or o.option_value == r.value %}<option value="{{ o.option_value }}" {{ 'selected' if o.option_value == r.value }}>{{ o.option_value }}</option>{% endfor %}</select>
+  {% elif r.field_type == 'multiselect' %}
+    <div class="pf-checks">{% for o in r.options if o.is_active or o.option_value in r.value %}<label class="pf-check"><input type="checkbox" name="{{ name }}" value="{{ o.option_value }}" {{ 'checked' if o.option_value in r.value }}> {{ o.option_value }}</label>{% endfor %}</div>
+  {% elif r.field_type == 'file' %}
+    {% if r.value %}<div class="ro"><a href="{{ url_for('custom_field_file', field_id=r.id, entity_type=kind, entity_id=entity_id) }}">{{ r.value.name }}</a> ({{ (r.value.size/1024)|round(1) }} KB)</div>
+      {% if not r.is_required %}<label class="pf-check"><input type="checkbox" name="{{ name }}__remove" value="1"> Remove this file</label>{% endif %}{% endif %}
+    <input id="in_{{ name }}" type="file" name="{{ name }}" accept=".pdf,.png,.jpg,.jpeg" data-max-bytes="1048576" data-size-message="{{ r.label }} must not exceed 1 MB.">
+    <small class="muted">PDF, PNG or JPG · maximum 1 MB</small>
+  {% else %}
+    <input id="in_{{ name }}" type="text" name="{{ name }}" value="{{ r.value }}" maxlength="200">
+  {% endif %}
+  {% if r.error %}<div class="pf-err" role="alert">{{ r.error }}</div>{% endif %}
+</div>
+{% endmacro %}
+{% block content %}
+<style>
+.pf-wrap{max-width:860px}.pf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 18px}
+.pf-field label{display:block;font-weight:600;margin-bottom:4px}.pf-field input[type=text],.pf-field input[type=email],.pf-field input[type=tel],.pf-field input[type=date],.pf-field select,.pf-field textarea{width:100%;box-sizing:border-box}
+.pf-field.has-error input,.pf-field.has-error select,.pf-field.has-error textarea{border:2px solid #b3261e}
+.pf-err{color:#b3261e;font-size:.88rem;margin-top:3px;font-weight:600}.req{color:#b3261e}.tag{font-size:.72rem;font-style:normal;color:#666;background:#eee;border-radius:8px;padding:1px 7px;margin-left:4px;font-weight:500}.req-tag{background:#fde7e5;color:#8c1d18}
+.ro{background:#f4f4f4;border-radius:6px;padding:8px 10px}.pf-checks{display:flex;flex-wrap:wrap;gap:10px}.pf-check{font-weight:400!important;display:inline-flex;gap:5px;align-items:center}
+.pf-summary{background:#fde7e5;border:1px solid #b3261e;border-radius:8px;padding:10px 14px;margin-bottom:14px}.pf-summary ul{margin:6px 0 0 18px}
+.pf-media{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}.pf-media img{max-width:130px;max-height:160px;border:1px solid #ddd;border-radius:6px;background:#fafafa}
+.btn[disabled]{opacity:.6;cursor:wait}
+</style>
+<div class="pf-wrap">
+<h1>{{ title }}</h1>
+{% if form_error or errors %}
+<div class="pf-summary" role="alert"><b>Nothing was saved.</b> {{ form_error or 'Please correct the following and save again — everything you entered has been kept:' }}
+  {% set shown = errors|dictsort|rejectattr(0,'equalto','_form')|list %}{% if shown %}<ul>{% for k,v in shown %}<li><a href="#{{ 'f_' ~ k if not k.startswith('cf_') else k }}">{{ v }}</a></li>{% endfor %}</ul>{% endif %}
+</div>{% endif %}
+<form method="POST" action="{{ action }}" enctype="multipart/form-data" id="profileForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card"><h3>Account information</h3>
+    {% for label, value in readonly %}<p><b>{{ label }}:</b> {{ value }}</p>{% endfor %}
+    <small class="muted">These details are controlled by the school and cannot be changed here.</small></div>
+  <div class="card"><h3>Profile details</h3><p class="muted"><span class="req">*</span> marks a required field. Every other field is optional.</p>
+    <div class="pf-grid">{% for r in rows %}{{ sysfield(r) }}{% endfor %}</div></div>
+  <datalist id="dl_states">{% for s in states %}<option value="{{ s }}">{% endfor %}</datalist>
+  <div class="card"><h3>Photograph{% if has_signature %} and signature{% endif %}</h3>
+    <div class="pf-media">
+      <div class="pf-field{{ ' has-error' if photo_error }}"><label>Passport photograph <em class="tag">Optional</em></label>
+        {% if photo_url %}<img src="{{ photo_url }}" alt="Current passport photograph"><br>{% endif %}
+        <input type="file" name="photo" accept=".png,.jpg,.jpeg,.gif" data-max-bytes="512000" data-size-message="Passport photograph must not exceed 500 KB.">
+        <small class="muted">PNG, JPG or GIF · maximum 500 KB</small>
+        {% if kind == 'student' and photo_url %}<label class="pf-check"><input type="checkbox" name="remove_photo" value="1"> Remove current photograph</label>{% endif %}
+        {% if photo_error %}<div class="pf-err" role="alert">{{ photo_error }}</div>{% endif %}</div>
+      {% if has_signature %}<div class="pf-field{{ ' has-error' if signature_error }}"><label>Signature <em class="tag">Optional</em></label>
+        {% if signature_url %}<img src="{{ signature_url }}" alt="Current signature"><br>{% endif %}
+        <input type="file" name="signature" accept=".png,.jpg,.jpeg,.gif" data-max-bytes="512000" data-size-message="Signature must not exceed 500 KB.">
+        <small class="muted">PNG, JPG or GIF · maximum 500 KB</small>
+        {% if signature_error %}<div class="pf-err" role="alert">{{ signature_error }}</div>{% endif %}</div>{% endif %}
+    </div></div>
+  {% if custom %}<div class="card"><h3>Additional information</h3><div class="pf-grid">{% for r in custom %}{{ cfield(r) }}{% endfor %}</div></div>{% endif %}
+  <div style="margin:14px 0"><button type="submit" class="btn" id="saveBtn" data-label="{{ 'Save Profile' }}">Save Profile</button>
+    <a class="btn btn-secondary" href="{{ cancel }}">Cancel</a></div>
+</form></div>
+<script>
+(function(){var f=document.getElementById('profileForm'),b=document.getElementById('saveBtn'),busy=false;
+f.addEventListener('submit',function(e){if(busy){e.preventDefault();return;}
+ var ok=true;f.querySelectorAll('input[data-max-bytes]').forEach(function(i){var x=i.files&&i.files[0],m=Number(i.dataset.maxBytes||0);if(x&&m&&x.size>m){ok=false;}});
+ if(!ok){e.preventDefault();return;}
+ busy=true;b.disabled=true;b.textContent='Saving…';});
+window.addEventListener('pageshow',function(){busy=false;b.disabled=false;b.textContent=b.dataset.label;});})();
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}Custom Fields (all schools){% endblock %}{% block content %}
+<h1>Custom Fields — all schools</h1><p class="muted">Read-only oversight. Schools manage their own fields.</p>
+<div class="card" style="overflow:auto"><table><thead><tr><th>School</th><th>Applies To</th><th>Field</th><th>Type</th><th>Required</th><th>Unique</th><th>Status</th><th>Values stored</th></tr></thead><tbody>
+{% for f in fields %}<tr><td>{{ f.school_name }}</td><td>{{ f.applies_to|title }}</td><td>{{ f.label }}</td><td>{{ type_labels.get(f.field_type) }}</td><td>{{ 'Yes' if f.is_required else 'No' }}</td><td>{{ 'Yes' if f.is_unique else 'No' }}</td><td>{% if f.is_archived %}Archived{% elif f.is_active %}Active{% else %}Inactive{% endif %}</td><td>{{ f.usage }}</td></tr>{% endfor %}</tbody></table>
+<p><a class="btn btn-small" href="{{ url_for('platform_audit_history') }}">Audit history</a></p></div>{% endblock %}
